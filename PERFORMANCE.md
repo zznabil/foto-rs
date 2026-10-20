@@ -28,6 +28,8 @@ The new regression checks allocation identity, requested-image survival, evictio
 
 ## Evidence
 
+The complete historical final comparison is checked in at [docs/evidence/performance-1.0.2.json](docs/evidence/performance-1.0.2.json). The paths below identify local development records; current public release evidence is supplied in each release ZIP.
+
 - AA calibration: artifacts/optimization/1792494363194120500-AA-serial/report.json
 - E01: artifacts/optimization/1792494436183099900-E01-zeroed/report.json
 - E02: artifacts/optimization/1792494552990634300-E02-reuse-previous/report.json
