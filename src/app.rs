@@ -1018,7 +1018,20 @@ unsafe fn run_window(
                 break;
             }
             if message.message == WM_KEYDOWN {
+                // Owner-drawn buttons do not acquire the dialog manager's default
+                // pushbutton behaviour. Enter still activates the focused control.
+                if message.wParam.0 == VK_RETURN.0 as usize
+                    && GetParent(message.hwnd).ok() == Some(hwnd)
+                    && IsWindowEnabled(message.hwnd).as_bool()
+                {
+                    SendMessageW(message.hwnd, BM_CLICK, None, None);
+                    continue;
+                }
                 if let Some(command) = keyboard(message.wParam.0 as u32) {
+                    // A held toggle key changes state once, not on every repeat.
+                    if command == FULLSCREEN && message.lParam.0 & (1 << 30) != 0 {
+                        continue;
+                    }
                     // Space activates a focused native button. Other shortcuts stay global.
                     if message.wParam.0 != VK_SPACE.0 as usize || message.hwnd == hwnd {
                         SendMessageW(

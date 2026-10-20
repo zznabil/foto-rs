@@ -1,6 +1,7 @@
 """Exercise the real Windows executable and write measured timings. Uses only Python's standard library."""
 import argparse
 import csv
+from contextlib import contextmanager
 import ctypes as C
 from ctypes import wintypes as W
 import hashlib
@@ -40,6 +41,12 @@ to_screen = api(user, "ClientToScreen", W.BOOL, W.HWND, C.POINTER(W.POINT))
 get_dc = api(user, "GetDC", W.HDC, W.HWND)
 release_dc = api(user, "ReleaseDC", C.c_int, W.HWND, W.HDC)
 get_pixel = api(gdi, "GetPixel", W.DWORD, W.HDC, C.c_int, C.c_int)
+create_dc = api(gdi, "CreateCompatibleDC", W.HDC, W.HDC)
+create_bitmap = api(gdi, "CreateCompatibleBitmap", W.HBITMAP, W.HDC, C.c_int, C.c_int)
+select_object = api(gdi, "SelectObject", W.HANDLE, W.HDC, W.HANDLE)
+delete_object = api(gdi, "DeleteObject", W.BOOL, W.HANDLE)
+delete_dc = api(gdi, "DeleteDC", W.BOOL, W.HDC)
+print_window = api(user, "PrintWindow", W.BOOL, W.HWND, W.HDC, W.UINT)
 global_alloc = api(kernel, "GlobalAlloc", W.HGLOBAL, W.UINT, C.c_size_t)
 global_lock = api(kernel, "GlobalLock", C.c_void_p, W.HGLOBAL)
 global_unlock = api(kernel, "GlobalUnlock", W.BOOL, W.HGLOBAL)
@@ -126,9 +133,6 @@ def launch(exe, photo, log):
     process = subprocess.Popen(args, creationflags=subprocess.CREATE_NO_WINDOW)
     try:
         hwnd = wait(lambda: windows(process.pid, "Foto.Native.Viewer"), "native viewer window")[0]
-        # Keep this test window unobscured while reading its composited screen pixels.
-        # This changes only the test instance; normal launches never set topmost.
-        assert set_pos(hwnd, W.HWND(-1), 0, 0, 0, 0, 0x13)
         wait(lambda: events(log, "window"), "successful window presentation")
         return process, hwnd, started
     except BaseException:
@@ -137,8 +141,28 @@ def launch(exe, photo, log):
         raise
 
 
+@contextmanager
+def client_dc(hwnd):
+    """Capture only the real native window, even when another app is above it."""
+    rect = W.RECT()
+    assert get_rect(hwnd, C.byref(rect))
+    screen = get_dc(None)
+    memory = create_dc(screen)
+    bitmap = create_bitmap(screen, rect.right, rect.bottom)
+    assert memory and bitmap
+    previous = select_object(memory, bitmap)
+    try:
+        assert print_window(hwnd, memory, 1), "PrintWindow could not capture the client"
+        yield memory, rect.right, rect.bottom
+    finally:
+        select_object(memory, previous)
+        delete_object(bitmap)
+        delete_dc(memory)
+        release_dc(None, screen)
+
+
 def pixel_corners(hwnd, rotated=False):
-    # Independently check actual composited screen pixels, rather than trusting the app's log.
+    # Observe native window pixels independently of the app's success log.
     rect = W.RECT()
     assert get_rect(hwnd, C.byref(rect))
     dpi = get_dpi(hwnd) / 96
@@ -148,16 +172,12 @@ def pixel_corners(hwnd, rotated=False):
     left, upper = (rect.right - iw * scale) / 2, top + (height - ih * scale) / 2
     expected = [(0, 0, 255), (255, 0, 0), (255, 255, 0), (0, 255, 0)] if rotated else [
         (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0)]
-    dc = get_dc(None)
-    try:
+    with client_dc(hwnd) as (dc, _, _):
         for (x, y), target in zip([(0.125, 0.125), (0.875, 0.125), (0.125, 0.875), (0.875, 0.875)], expected):
             point = W.POINT(round(left + iw * scale * x), round(upper + ih * scale * y))
-            assert to_screen(hwnd, C.byref(point))
             value = get_pixel(dc, point.x, point.y)
             actual = (value & 255, value >> 8 & 255, value >> 16 & 255)
             assert all(abs(a-b) < 15 for a, b in zip(actual, target)), ("screen pixel", actual, target)
-    finally:
-        release_dc(None, dc)
 
 
 def cpu_ms(process):
@@ -265,11 +285,6 @@ def main():
         assert idle_cpu <= 50, f"Unexpected idle CPU: {idle_cpu} ms"
         checks.append("idle window consumes <=50 ms CPU over one second")
         assert not events(log, "error") and not events(log, "graphics_error")
-    except BaseException:
-        helper = Path.home() / ".codex/skills/screenshot/scripts/take_screenshot.ps1"
-        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(helper),
-                        "-Mode", "temp", "-WindowHandle", str(hwnd)], check=False)
-        raise
     finally:
         close(process, hwnd)
 
@@ -312,7 +327,7 @@ def main():
         time.sleep(0.1)
         pixel_corners(hwnd)
         assert not events(nav_log, "graphics_error")
-        checks.append("ten cached navigation draws and final screen pixels")
+        checks.append("ten cached navigation draws and final native window pixels")
     finally:
         close(process, hwnd)
 
@@ -347,6 +362,7 @@ def main():
     report = {"verdict": "PASS", "checks": checks, "runs": options.runs,
               "exe_bytes": options.exe.stat().st_size,
               "exe_sha256": hashlib.sha256(options.exe.read_bytes()).hexdigest(),
+              "pixel_oracle": "PrintWindow client pixels from the native window; no application state bypass",
               "test_image": "6000 x 4000 JPEG (24 MP), synthetic gradient, warm OS file cache",
               "first_window_median_ms": round(statistics.median(windows_ms), 2),
               "first_image_median_ms": round(statistics.median(x["internal_ms"] for x in samples), 2),

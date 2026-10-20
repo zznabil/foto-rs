@@ -66,6 +66,14 @@ impl Decoder {
     unsafe fn load_inner(&self, path: &Path) -> windows::core::Result<Image> {
         // WIC objects never cross threads. Only owned pixel bytes leave this method.
         unsafe {
+            // Rust filesystem calls support extended paths, but WIC receives the
+            // raw UTF-16 name. Resolve long names here, off the UI thread.
+            let extended = if path.as_os_str().encode_wide().count() >= 260 {
+                std::fs::canonicalize(path).ok()
+            } else {
+                None
+            };
+            let path = extended.as_deref().unwrap_or(path);
             let wide: Vec<u16> = path.as_os_str().encode_wide().chain(Some(0)).collect();
             let (mut source, orientation): (IWICBitmapSource, u32) = if path
                 .extension()
@@ -281,6 +289,25 @@ mod tests {
         let wide = decoder.load(&fixture("wide.png")).unwrap();
         assert_eq!(wide.original, (9000, 2));
         assert_eq!(wide.size(), (8192, 1));
+    }
+
+    #[test]
+    fn decodes_a_normal_windows_path_longer_than_max_path() {
+        let root = std::env::temp_dir().join(format!("foto-long-{}", std::process::id()));
+        let a = root.join("a".repeat(90));
+        let b = a.join("b".repeat(90));
+        let c = b.join("c".repeat(90));
+        std::fs::create_dir_all(&c).unwrap();
+        let path = c.join("photo.png");
+        std::fs::copy(fixture("colors.png"), &path).unwrap();
+        assert!(path.as_os_str().encode_wide().count() > 260);
+        let image = Decoder::new().unwrap().load(&path).unwrap();
+        assert_eq!(image.size(), (64, 48));
+        assert_eq!(&image.pixels[..4], &[0, 0, 255, 255]);
+        std::fs::remove_file(path).unwrap();
+        for directory in [c, b, a, root] {
+            std::fs::remove_dir(directory).unwrap();
+        }
     }
 
     #[test]

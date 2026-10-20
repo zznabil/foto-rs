@@ -295,7 +295,20 @@ fn scan_directory(path: &Path, current: impl Fn() -> bool) -> Result<Vec<PathBuf
         }
     }
     if !files.iter().any(|p| p == path) {
-        files.push(path.to_owned());
+        // Windows accepts alternate filename casing. Resolve the selected name on
+        // this worker, then preserve the caller's path without adding a duplicate.
+        let selected = std::fs::canonicalize(path).ok();
+        let existing = selected.as_ref().and_then(|selected| {
+            files.iter().position(|candidate| {
+                candidate.file_name() == selected.file_name()
+                    && std::fs::canonicalize(candidate).as_ref().ok() == Some(selected)
+            })
+        });
+        if let Some(index) = existing {
+            files[index] = path.to_owned();
+        } else {
+            files.push(path.to_owned());
+        }
     }
     let mut keyed: Vec<_> = files
         .into_iter()
@@ -376,6 +389,26 @@ mod tests {
         slot.set(4);
         slot.close();
         assert_eq!(slot.take(), None);
+    }
+
+    #[test]
+    fn alternate_windows_filename_casing_does_not_duplicate_the_selected_photo() {
+        let folder = std::env::temp_dir().join(format!("foto-case-{}", std::process::id()));
+        std::fs::create_dir(&folder).unwrap();
+        let original = folder.join("photo1.png");
+        let next = folder.join("photo2.png");
+        std::fs::write(&original, []).unwrap();
+        std::fs::write(&next, []).unwrap();
+        let selected = folder.join("PHOTO1.PNG");
+        assert!(
+            selected.is_file(),
+            "This regression needs Windows filename semantics"
+        );
+        let files = scan_directory(&selected, || true).unwrap();
+        assert_eq!(files, vec![selected, next.clone()]);
+        std::fs::remove_file(original).unwrap();
+        std::fs::remove_file(next).unwrap();
+        std::fs::remove_dir(folder).unwrap();
     }
 
     #[test]

@@ -24,7 +24,7 @@ The viewer finds other photos in the same folder. File names use Explorer's nume
 - **R**: rotate clockwise.
 - **F11**, **F**, or **double-click**: full screen.
 - **Escape**: leave full screen, or close the viewer.
-- **Tab / Shift+Tab**: focus the labelled native toolbar buttons.
+- **Tab / Shift+Tab**: focus the labelled native toolbar buttons. **Enter / Space** activates a focused button.
 - **F1**: help.
 
 ## Formats and limits
@@ -69,7 +69,17 @@ The executable is `target\release\foto.exe`. Copy it to `dist\foto.exe` for port
 
 Decoder fixtures are included under `tests/fixtures`. To regenerate them and create larger benchmark images, install Pillow in the development environment and run `python tools/generate_fixtures.py`. Pillow is not an application dependency.
 
-Run `python tools/smoke_test.py --exe dist/foto.exe --runs 10` in an unlocked Windows desktop session. The script opens temporary test windows, keeps those test instances above other windows for screen-pixel checks, and closes them. It checks actual rendered pixels, input ordering, navigation, resize, full screen, corrupt-file recovery, idle CPU and unchanged input files. It writes a success marker only after all checks pass.
+Run `python tools/smoke_test.py --exe dist/foto.exe --runs 10` in an unlocked Windows desktop session. The script opens temporary test windows, captures each test window with PrintWindow for pixel checks, and closes it. It checks actual rendered pixels, input ordering, navigation, resize, full screen, corrupt-file recovery, idle CPU and unchanged input files. It writes a success marker only after all checks pass.
+
+For the extended local suite, build the native accessibility probe and run:
+
+```powershell
+cargo build --release --example uia_probe
+python tools/stress_test.py --exe dist/foto.exe
+python tools/malformed_test.py --exe dist/foto.exe --samples 200
+```
+
+The stress suite covers twelve journey charters, 2,000 rapid navigation inputs, 30 drops, a 10,000-entry folder, 30 open/close cycles and a 120-second active soak. The malformed suite uses bounded JPEG/PNG mutations and verifies native UI Automation button names, roles, focus support and actual Invoke behavior. Generated files stay under `artifacts/hardening/`. These are automated acceptance checks; see [AUDIT.md](AUDIT.md) for findings and evidence and [BASELINE.md](BASELINE.md) for the frozen v1.0.0 checkpoint.
 
 The application was tested on Windows 11. A separate Windows 10 machine and multiple monitor DPI configurations have not been tested.
 
