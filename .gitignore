@@ -4,3 +4,6 @@
 /baselines/
 __pycache__/
 
+/.agent-state/
+/release-out/
+/.venv/
