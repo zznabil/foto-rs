@@ -382,16 +382,23 @@ impl App {
         self.index = 0;
         self.browsing = true;
         self.folder_error = None;
-        self.select(true);
+        self.select(true, None);
     }
 
-    fn select(&mut self, scan: bool) {
+    fn select(&mut self, scan: bool, previous: Option<PathBuf>) {
         let Some(path) = self.files.get(self.index).cloned() else {
             return;
         };
         let Some(loader) = &self.loader else { return };
         self.requested_at = Instant::now();
-        let (generation, cached) = loader.request(path, scan);
+        let previous = previous.and_then(|path| {
+            if !self.loading && self.error.is_none() {
+                self.image.as_ref().map(|image| (path, image.clone()))
+            } else {
+                None
+            }
+        });
+        let (generation, cached) = loader.request(path, scan, previous);
         self.generation = generation;
         self.error = None;
         self.loading = cached.is_none();
@@ -500,8 +507,9 @@ impl App {
                     _ => self.files.len() - 1,
                 };
                 if next != self.index {
+                    let previous = self.files.get(self.index).cloned();
                     self.index = next;
-                    self.select(false);
+                    self.select(false, previous);
                 }
             }
             FIT => {

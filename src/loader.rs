@@ -104,6 +104,21 @@ impl Cache {
         self.entries.push_back(entry);
         Some(image)
     }
+    fn select(
+        &mut self,
+        path: &Path,
+        previous: Option<(PathBuf, Arc<Image>)>,
+    ) -> Option<Arc<Image>> {
+        // Acquire the selected image before reinserting the previous display.
+        // Prefetch may have evicted it while the UI still owned its pixel bytes.
+        // Reuse that allocation instead of decoding it again on a direction change.
+        let image = self.get(path);
+        if let Some((old_path, old_image)) = previous {
+            self.insert(old_path, old_image);
+        }
+        image
+    }
+
     fn insert(&mut self, path: PathBuf, image: Arc<Image>) {
         if let Some(index) = self.entries.iter().position(|(p, _)| *p == path) {
             self.bytes -= self.entries.remove(index).unwrap().1.pixels.len();
@@ -189,14 +204,19 @@ impl Loader {
         Ok(Self { shared, events })
     }
 
-    pub fn request(&self, path: PathBuf, scan: bool) -> (u64, Option<Arc<Image>>) {
+    pub fn request(
+        &self,
+        path: PathBuf,
+        scan: bool,
+        previous: Option<(PathBuf, Arc<Image>)>,
+    ) -> (u64, Option<Arc<Image>>) {
         let generation = self.shared.generation.fetch_add(1, Ordering::Relaxed) + 1;
         let mut cache = self.shared.cache.lock().unwrap();
         // Reopening a file explicitly refreshes externally edited photos.
         if scan {
             cache.clear();
         }
-        let image = cache.get(&path);
+        let image = cache.select(&path, if scan { None } else { previous });
         drop(cache);
         self.shared.foreground.set(Request {
             generation,
@@ -377,6 +397,22 @@ mod tests {
         cache.insert("too-large".into(), image(16));
         assert!(cache.get(Path::new("too-large")).is_none());
         assert_eq!(cache.bytes, 12);
+    }
+
+    #[test]
+    fn navigating_reuses_evicted_display_pixels_without_losing_the_selected_image() {
+        let mut cache = Cache::new(8);
+        let old = image(4);
+        let selected = image(4);
+        cache.insert("old".into(), old.clone());
+        cache.insert("next".into(), selected.clone());
+        cache.insert("other".into(), image(4));
+        assert!(cache.get(Path::new("old")).is_none());
+        let result = cache.select(Path::new("next"), Some(("old".into(), old.clone())));
+        assert!(Arc::ptr_eq(&result.unwrap(), &selected));
+        assert!(Arc::ptr_eq(&cache.get(Path::new("old")).unwrap(), &old));
+        assert_eq!(cache.bytes, 8);
+        assert!(cache.get(Path::new("other")).is_none());
     }
 
     #[test]

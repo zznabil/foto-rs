@@ -41,7 +41,7 @@ The executable uses native Win32 controls, Windows Imaging Component decoding, D
 
 The viewer repaints on input, window changes and completed image loads. It has no idle rendering timer. Two worker threads handle foreground decoding and lower-priority prefetch. Pending foreground work has one replaceable slot. Stale results cannot replace the selected image.
 
-Adjacent decoded photos use an LRU cache capped at **192 MiB and five entries**. Active image bytes, the drawing bitmap, codec allocations and in-flight decodes are additional memory. The drawing bitmap is reused when adjacent images have equal dimensions.
+Adjacent decoded photos use an LRU cache capped at **192 MiB and five entries**. Active image bytes, the drawing bitmap, codec allocations and in-flight decodes are additional memory. The drawing bitmap is reused when adjacent images have equal dimensions. Navigation also returns the previously displayed pixel buffer to the cache when prefetch has evicted it, avoiding unnecessary redecoding. See [PERFORMANCE.md](PERFORMANCE.md) for the measured optimization loop and its limits.
 
 See `artifacts/verification.json` for the latest measured results. The test uses synthetic 6000 × 4000 JPEGs and a warm Windows file cache. Timings vary with the file, storage, codec, display, security scanning and system load. A warm-cache measurement is not a cold-start guarantee.
 

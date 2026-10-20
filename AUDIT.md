@@ -1,6 +1,6 @@
-# Foto hardening audit - 2026-10-20
+# Foto 1.0.1 hardening audit - 2026-10-20
 
-Verdict: PASS for this bounded Windows 11 hardening wave. The user-approved viewer is frozen as v1.0.0. The current 1.0.1 patch repairs four reproduced defects. No remote release was published.
+Verdict: PASS for this bounded Windows 11 hardening wave. The user-approved viewer is frozen as v1.0.0. The 1.0.1 patch repairs four reproduced defects. No remote release was published.
 
 ## Findings
 
@@ -24,7 +24,7 @@ A managed UI Automation client incorrectly reported generic panes. Independent n
 ## Final evidence
 
 - Formatting, strict Clippy on all targets, 13 Rust tests and portable import audit: PASS.
-- artifacts/verification.json: 16 live-window checks, 10 launch and 10 cached-navigation samples: PASS.
+- baselines/performance-start-1.0.1/verification.json: 16 live-window checks, 10 launch and 10 cached-navigation samples: PASS.
 - artifacts/hardening/20261020-174902-22352/report.json: all twelve journey charters: PASS. Includes 2,000 rapid navigation inputs, 30 drops, 10,000 folder entries, 30 open/close cycles and 20 simulated DPI notifications.
 - artifacts/hardening/20261020-174929-31132/malformed-report.json: 200 bounded mutations, 170 decoded or partially decoded, 30 rejected; valid recovery and native accessibility Invoke: PASS.
 - All nine frozen v1.0.0 manifest hashes and its local source tag: unchanged.
@@ -39,4 +39,4 @@ Warm-cache medians: externally observed first image 146.53 ms, internal first dr
 
 Automated agent-operated journeys are not human UAT. Windows 10, real multi-monitor transfers, hardware DPI transitions and image-content screen-reader access remain unverified. Warm-cache synthetic JPEG timings do not establish cold-start latency. A 120-second soak cannot establish behavior over days. No unresolved reproduced product defect remains in these charters. Earlier raw failed runs remain under artifacts/hardening; only the named final reports gate this build.
 
-Executable: dist/foto.exe. Its SHA256 matches all three packaged reports and dist/SHA256SUMS.txt. See BASELINE.md for the frozen v1.0.0 source and executable.
+The tested 1.0.1 executable and its reports are preserved under baselines/performance-start-1.0.1. The current distribution is now 1.0.2; see PERFORMANCE.md for the later measured optimization and fresh regression results. See BASELINE.md for the frozen v1.0.0 source and executable.
