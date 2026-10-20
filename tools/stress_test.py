@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Bounded native-window journey and stress tests. Synthetic files only; requires Pillow.
 
 Run against baselines/v1.0.0/foto.exe before repairs, then dist/foto.exe afterwards.
@@ -11,6 +12,7 @@ import math
 import os
 from pathlib import Path
 import random
+import platform
 import subprocess
 import sys
 import time
@@ -152,7 +154,7 @@ class Suite:
         report = {"exe": str(self.exe), "exe_sha256": hashlib.sha256(self.exe.read_bytes()).hexdigest(),
                   "seed": 1701, "options": vars(self.options) | {"exe": str(self.options.exe)},
                   "results": self.results, "metrics": self.metrics,
-                  "limits": ["agent-operated journeys; human UAT not performed", "Windows 11 only",
+                  "limits": ["agent-operated journeys; human UAT not performed", "Host: "+platform.platform()+"; Windows 10 not independently tested",
                              "DPI changes are simulated on current monitor", "no installed codec changes"]}
         (self.output/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 

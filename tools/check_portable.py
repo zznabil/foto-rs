@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Verify a Windows x64 GUI executable imports only Windows system libraries."""
 import hashlib
 from pathlib import Path

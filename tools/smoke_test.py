@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Exercise the real Windows executable and write measured timings. Uses only Python's standard library."""
 import argparse
 import csv

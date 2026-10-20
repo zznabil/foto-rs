@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Bounded malformed-image recovery tests and native accessibility inspection."""
 import argparse
 import hashlib

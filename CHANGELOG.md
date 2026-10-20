@@ -1,5 +1,14 @@
 # Changes
 
+## 1.0.3
+
+- Publish the GPL-3.0-or-later GitHub project with contributor and security guidance.
+- Add native Windows product/file version metadata.
+- Add pinned CI, minimum-Rust compilation, dependency checks, protected merge/release procedures, and automated draft-to-public verification.
+- Package portable Windows binaries, complete vendored corresponding source, third-party notices, SPDX inventory, checksums and GitHub provenance.
+- Label runner environments accurately and generate benchmark inputs without rewriting committed fixtures.
+- Preserve the viewer behavior and existing decoded-image reuse optimization.
+
 ## 1.0.2
 
 - Reuse the previously displayed decoded image after cache eviction during navigation, reducing redundant decoding without changing image quality or cache limits.

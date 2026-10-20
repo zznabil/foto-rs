@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 use crate::{decode::Image, view::View};
 use std::sync::Arc;
 use windows::{
