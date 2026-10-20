@@ -393,13 +393,16 @@ class Suite:
         try:
             base=resources(view.process)
             for dpi in [120,144,192,96]*5:
-                scale=dpi/96;area=W.RECT(20,20,20+round(800*scale),20+round(550*scale))
+                scale=dpi/96;area=W.RECT(20,20,20+min(round(800*scale),1024),20+round(550*scale))
                 s.send(view.hwnd,0x2e0,dpi|(dpi<<16),C.addressof(area))
+                # Match a compact desktop even when this test host has a large monitor.
+                # Skip WM_WINDOWPOSCHANGING so the old single-row minimum cannot hide clipping.
+                assert s.set_pos(view.hwnd,None,area.left,area.top,area.right-area.left,area.bottom-area.top,0x414)
                 time.sleep(.03)
                 _,_,w,h=rect(view.hwnd,True)
                 for i in range(100,108):
                     br=rect(s.get_item(view.hwnd,i));wr=rect(view.hwnd)
-                    assert br[0]>=wr[0] and br[2]<=wr[2],('toolbar clipped',dpi,i,br,wr)
+                    assert br[0]>=wr[0] and br[2]<=wr[2] and br[1]>=wr[1] and br[3]<=wr[3],('toolbar clipped',dpi,i,br,wr)
             s.send(view.hwnd,0x7e,32,packed(1920,1080))
             s.send(view.hwnd,0x31a,0,0)
             time.sleep(.1);center_color(view.hwnd,self.red)

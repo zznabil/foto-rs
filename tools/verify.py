@@ -50,7 +50,7 @@ def main():
         run('format',['cargo','fmt','--all','--','--check'])
         run('clippy',['cargo','clippy','--locked','--all-targets','--','-D','warnings'])
         unit=run('unit',['cargo','test','--locked'])
-        assert any(int(count)>=14 for count in re.findall(r'test result: ok\. (\d+) passed; 0 failed',unit)), 'Expected the complete Rust unit suite'
+        assert any(int(count)>=15 for count in re.findall(r'test result: ok\. (\d+) passed; 0 failed',unit)), 'Expected the complete Rust unit suite'
         run('release-build',['cargo','build','--locked','--release'])
         run('uia-build',['cargo','build','--locked','--release','--example','uia_probe'])
         run('fixtures',[sys.executable,'tools/generate_fixtures.py','--bench-only'])

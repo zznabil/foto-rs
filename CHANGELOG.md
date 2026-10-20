@@ -2,6 +2,8 @@
 
 ## 1.0.3
 
+- Fix toolbar clipping on small/high-DPI desktops by wrapping native controls into additional rows.
+
 - Publish the GPL-3.0-or-later GitHub project with contributor and security guidance.
 - Add native Windows product/file version metadata.
 - Add pinned CI, minimum-Rust compilation, dependency checks, protected merge/release procedures, and automated draft-to-public verification.

@@ -129,10 +129,12 @@ impl Renderer {
         view: &View,
         status: &str,
         error: Option<&str>,
-        fullscreen: bool,
+        toolbar: Option<f32>,
         dpi: f32,
     ) -> Result<()> {
         unsafe {
+            let fullscreen = toolbar.is_none();
+            let toolbar_height = toolbar.unwrap_or(0.0);
             if let Some(image) = image {
                 if self
                     .uploaded
@@ -178,8 +180,8 @@ impl Renderer {
                 (0.0, size.height)
             } else {
                 (
-                    TOOLBAR * dpi,
-                    (size.height - STATUS * dpi).max(TOOLBAR * dpi),
+                    toolbar_height,
+                    (size.height - STATUS * dpi).max(toolbar_height),
                 )
             };
             self.target.BeginDraw();
