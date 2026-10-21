@@ -1,5 +1,18 @@
 # Changes
 
+## 1.0.3
+
+- Add Defender scans of built and independently downloaded executables; retain hash-bound scan evidence and block detected or inconclusive results. Document the 1.0.2 detection and its limits in docs/DEFENDER.md.
+- Validate inventories against the pinned official SPDX schema and preserve identical metadata bytes inside ZIPs and detached assets on Windows.
+- Fix toolbar clipping on small/high-DPI desktops by wrapping native controls into additional rows.
+
+- Publish the GPL-3.0-or-later GitHub project with contributor and security guidance.
+- Add native Windows product/file version metadata.
+- Add pinned CI, minimum-Rust compilation, dependency checks, protected merge/release procedures, and automated draft-to-public verification.
+- Package portable Windows binaries, complete vendored corresponding source, third-party notices, SPDX inventory, checksums and GitHub provenance.
+- Label runner environments accurately and generate benchmark inputs without rewriting committed fixtures.
+- Preserve the viewer behavior and existing decoded-image reuse optimization.
+
 ## 1.0.2
 
 - Reuse the previously displayed decoded image after cache eviction during navigation, reducing redundant decoding without changing image quality or cache limits.

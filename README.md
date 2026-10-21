@@ -1,86 +1,70 @@
 # Foto
 
-A minimal, native photo viewer for 64-bit Windows 10 and 11. Built in Rust.
+[![CI](https://github.com/zznabil/foto-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/zznabil/foto-rs/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/zznabil/foto-rs)](https://github.com/zznabil/foto-rs/releases/latest)
+[![License: GPL v3 or later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
-## Run
+A minimal native photo viewer for Windows x64, written in Rust. Open a photo, browse its folder, zoom, pan, rotate and go full screen. Photos stay read only.
 
-Open `dist/foto.exe`, then drop a photo into the window or press **Ctrl+O**.
-You can also drop a photo onto the executable, or run:
+## Download
+
+Download the **Windows x64 ZIP** from [the latest release](https://github.com/zznabil/foto-rs/releases/latest), extract it, and run `foto.exe`. No installation, account, Rust toolchain or separate Visual C++ runtime is required.
+
+The executable is unsigned by Windows Authenticode. Release checksums and GitHub build provenance identify the published artifacts; provenance does not replace Windows code signing. See [verification instructions](docs/VERIFYING.md).
+
+Defender scans gate the built and independently downloaded executable. See the [1.0.2 detection investigation](docs/DEFENDER.md) for the affected hash and current evidence limits.
+
+Windows 10 and 11 x64 are the intended desktop targets. Windows 11 has local journey coverage; Windows Server runners provide CI coverage. A separate Windows 10 host and real multi-monitor DPI transfers remain unverified.
+
+## Use
+
+Drop a photo into the window, press **Ctrl+O**, or drop it onto `foto.exe`. You can also pass its path:
 
 ```powershell
-.\dist\foto.exe "C:\Pictures\photo.jpg"
+.\foto.exe "C:\Pictures\photo.jpg"
 ```
 
-The viewer finds other photos in the same folder. File names use Explorer's numeric order, so `photo2` comes before `photo10`. Photos are read only. Rotation changes the view and does not save changes to the file.
+The viewer finds other supported photos in the same folder, in Explorer-style numeric order: `photo2` comes before `photo10`. Rotation changes only the view.
 
-## Controls
-
-- **Left / Right**, **Page Up / Page Down**: previous / next photo.
-- **Home / End**: first / last photo.
-- **Mouse wheel**, **+ / -**: zoom. The wheel keeps the pointer over the same image position where the image bounds allow it.
-- **Drag**: pan a zoomed photo.
-- **0**: fit the photo inside the window. Small photos retain their original size.
-- **1**: actual pixels.
-- **R**: rotate clockwise.
-- **F11**, **F**, or **double-click**: full screen.
-- **Escape**: leave full screen, or close the viewer.
-- **Tab / Shift+Tab**: focus the labelled native toolbar buttons. **Enter / Space** activates a focused button.
-- **F1**: help.
+| Control | Action |
+| --- | --- |
+| Left / Right; Page Up / Page Down | Previous / next photo |
+| Home / End | First / last photo |
+| Wheel; + / - | Zoom |
+| Drag | Pan |
+| 0 / 1 | Fit / actual decoded pixels |
+| R | Rotate clockwise |
+| F11; F; double-click | Toggle full screen |
+| Escape | Leave full screen, or close |
+| Tab / Shift+Tab; Enter / Space | Focus / activate toolbar buttons |
+| F1 | Help |
 
 ## Formats and limits
 
-JPEG, PNG, BMP, GIF, TIFF and ICO are supported. GIF and TIFF show their first frame. HEIC, HEIF, WebP and JPEG XR depend on the Windows codecs installed on the computer. JPEG EXIF orientation is applied, including mirrored orientations.
+JPEG, PNG, BMP, GIF, TIFF and ICO are supported. GIF and TIFF show their first frame. HEIC, HEIF, WebP and JPEG XR depend on installed Windows codecs. JPEG EXIF orientation includes mirrored orientations.
 
-Images larger than 32 million pixels or 8192 pixels on either side are reduced before the viewer allocates its pixel buffer. The status bar identifies a reduced preview. For these images, **100%** means one decoded preview pixel per screen pixel.
-
-This first version focuses on local image viewing. It does not animate GIFs, manage a photo library, edit files, or handle video. Screen-reader access to image contents and the custom-drawn status line has not been verified. Toolbar controls have native button names and keyboard focus.
+Images exceeding 32 million pixels or an 8192-pixel edge use a reduced preview, identified in the status bar. For these images, 100% means one decoded preview pixel per screen pixel. Foto does not animate GIFs, edit files, manage a photo library or play video. Image-content and custom status-line screen-reader access remain unverified; native toolbar names, focus and Invoke are tested.
 
 ## Performance
 
-The executable uses native Win32 controls, Windows Imaging Component decoding, DirectWrite text and a Direct2D software DC render target. The DC render target avoids a window swap chain and works in the desktop session used for testing, where the swap-chain path could report occlusion for a visible window.
+Native Win32 controls, WIC decoding, DirectWrite text and a Direct2D software DC target keep the app small and responsive. Two workers handle foreground decoding and lower-priority prefetch. Pending foreground work has one replaceable slot; stale results cannot replace the selected image. There is no idle rendering timer.
 
-The viewer repaints on input, window changes and completed image loads. It has no idle rendering timer. Two worker threads handle foreground decoding and lower-priority prefetch. Pending foreground work has one replaceable slot. Stale results cannot replace the selected image.
+The decoded cache is capped at **192 MiB and five entries**. Active images, rendering bitmaps, codec allocations and in-flight decodes are additional memory. Navigation reuses the previous displayed allocation when prefetch has evicted it. An earlier paired synthetic 24 MP browsing test measured about 50% lower CPU time and 12.5% lower peak working set from that change. Steady memory did not improve, and no startup speedup is claimed. See [the experiment record](PERFORMANCE.md); results depend on workload, hardware, codecs and system load.
 
-Adjacent decoded photos use an LRU cache capped at **192 MiB and five entries**. Active image bytes, the drawing bitmap, codec allocations and in-flight decodes are additional memory. The drawing bitmap is reused when adjacent images have equal dimensions. Navigation also returns the previously displayed pixel buffer to the cache when prefetch has evicted it, avoiding unnecessary redecoding. See [PERFORMANCE.md](PERFORMANCE.md) for the measured optimization loop and its limits.
+Each release includes fresh test evidence in its portable ZIP. Historical local reports are not CI or release acceptance for a later build.
 
-See `artifacts/verification.json` for the latest measured results. The test uses synthetic 6000 × 4000 JPEGs and a warm Windows file cache. Timings vary with the file, storage, codec, display, security scanning and system load. A warm-cache measurement is not a cold-start guarantee.
+## Build and contribute
 
-To collect a local CSV log, choose an output path that does not exist:
-
-```powershell
-.\dist\foto.exe "C:\Pictures\photo.jpg" --timings .\timings.csv
-```
-
-`elapsed_ms` measures time since application entry. On an `image` row, `request_ms` measures selection through a successful draw; `cached` records whether the image was cached when selected. Process creation and the desktop compositor add latency. The log also records decoder and drawing errors. The viewer refuses to overwrite an existing log file.
-
-## Build and verify
-
-Install the Rust MSVC toolchain and Microsoft C++ build tools. Then run:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for prerequisites, pinned dependencies and the complete Windows verification command. Build with the MSVC toolchain and Windows SDK:
 
 ```powershell
-cargo fmt --all -- --check
-cargo clippy --all-targets -- -D warnings
-cargo test
-cargo build --release
-python tools/check_portable.py target/release/foto.exe
+cargo build --locked --release
 ```
 
-The executable is `target\release\foto.exe`. Copy it to `dist\foto.exe` for portable use. The project links the C runtime statically. The executable does not require a Rust installation or a separate Visual C++ runtime installation on the destination computer.
+The executable is `target\release\foto.exe`. Python and Pillow are test tools only.
 
-Decoder fixtures are included under `tests/fixtures`. To regenerate them and create larger benchmark images, install Pillow in the development environment and run `python tools/generate_fixtures.py`. Pillow is not an application dependency.
+[Changes](CHANGELOG.md) | [Release process](docs/RELEASING.md) | [Security reports](SECURITY.md) | [Baseline](BASELINE.md)
 
-Run `python tools/smoke_test.py --exe dist/foto.exe --runs 10` in an unlocked Windows desktop session. The script opens temporary test windows, captures each test window with PrintWindow for pixel checks, and closes it. It checks actual rendered pixels, input ordering, navigation, resize, full screen, corrupt-file recovery, idle CPU and unchanged input files. It writes a success marker only after all checks pass.
+## License
 
-For the extended local suite, build the native accessibility probe and run:
-
-```powershell
-cargo build --release --example uia_probe
-python tools/stress_test.py --exe dist/foto.exe
-python tools/malformed_test.py --exe dist/foto.exe --samples 200
-```
-
-The stress suite covers twelve journey charters, 2,000 rapid navigation inputs, 30 drops, a 10,000-entry folder, 30 open/close cycles and a 120-second active soak. The malformed suite uses bounded JPEG/PNG mutations and verifies native UI Automation button names, roles, focus support and actual Invoke behavior. Generated files stay under `artifacts/hardening/`. These are automated acceptance checks; see [AUDIT.md](AUDIT.md) for findings and evidence and [BASELINE.md](BASELINE.md) for the frozen v1.0.0 checkpoint.
-
-The application was tested on Windows 11. A separate Windows 10 machine and multiple monitor DPI configurations have not been tested.
-
-Windows API reference: [Direct2D and GDI interoperability](https://learn.microsoft.com/en-us/windows/win32/direct2d/direct2d-and-gdi-interoperation-overview).
+**GPL-3.0-or-later.** See [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT). Contributions use the same license. Third-party licenses and the dependency inventory are described in [THIRD_PARTY.md](THIRD_PARTY.md). Corresponding release source, including vendored Cargo dependencies and build scripts, is distributed alongside the binary ZIP.

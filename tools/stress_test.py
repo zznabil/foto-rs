@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Bounded native-window journey and stress tests. Synthetic files only; requires Pillow.
 
 Run against baselines/v1.0.0/foto.exe before repairs, then dist/foto.exe afterwards.
@@ -11,6 +12,7 @@ import math
 import os
 from pathlib import Path
 import random
+import platform
 import subprocess
 import sys
 import time
@@ -152,7 +154,7 @@ class Suite:
         report = {"exe": str(self.exe), "exe_sha256": hashlib.sha256(self.exe.read_bytes()).hexdigest(),
                   "seed": 1701, "options": vars(self.options) | {"exe": str(self.options.exe)},
                   "results": self.results, "metrics": self.metrics,
-                  "limits": ["agent-operated journeys; human UAT not performed", "Windows 11 only",
+                  "limits": ["agent-operated journeys; human UAT not performed", "Host: "+platform.platform()+"; Windows 10 not independently tested",
                              "DPI changes are simulated on current monitor", "no installed codec changes"]}
         (self.output/'report.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
 
@@ -357,9 +359,14 @@ class Suite:
             s.wait(lambda:s.text(view.hwnd)=='photo1.jpg — Foto','soak final selection',20)
             s.command(view.hwnd,103);time.sleep(.5)
             # Navigation resets rotation; if the last action was already first, reset by visiting last.
+            last_presented = len(s.events(view.log,'image'))
             s.key(view.hwnd,0x23);s.wait(lambda:s.text(view.hwnd)=='photo10.jpg — Foto','soak last')
+            s.wait(lambda:len(s.events(view.log,'image'))>last_presented,'soak last image presentation',20)
+            presented = len(s.events(view.log,'image'))
             s.key(view.hwnd,0x24);s.wait(lambda:s.text(view.hwnd)=='photo1.jpg — Foto','soak first')
-            time.sleep(.1);s.pixel_corners(view.hwnd)
+            # A title changes when selection starts, before an uncached decode and paint.
+            s.wait(lambda:len(s.events(view.log,'image'))>presented,'soak final image presentation',20)
+            s.pixel_corners(view.hwnd)
             time.sleep(1);final=resources(view.process)
             assert final['gdi']<=base['gdi']+4,('GDI growth',base,final)
             assert final['user']<=base['user']+4,('USER growth',base,final)
@@ -391,13 +398,16 @@ class Suite:
         try:
             base=resources(view.process)
             for dpi in [120,144,192,96]*5:
-                scale=dpi/96;area=W.RECT(20,20,20+round(800*scale),20+round(550*scale))
+                scale=dpi/96;area=W.RECT(20,20,20+min(round(800*scale),1024),20+round(550*scale))
                 s.send(view.hwnd,0x2e0,dpi|(dpi<<16),C.addressof(area))
+                # Match a compact desktop even when this test host has a large monitor.
+                # Skip WM_WINDOWPOSCHANGING so the old single-row minimum cannot hide clipping.
+                assert s.set_pos(view.hwnd,None,area.left,area.top,area.right-area.left,area.bottom-area.top,0x414)
                 time.sleep(.03)
                 _,_,w,h=rect(view.hwnd,True)
                 for i in range(100,108):
                     br=rect(s.get_item(view.hwnd,i));wr=rect(view.hwnd)
-                    assert br[0]>=wr[0] and br[2]<=wr[2],('toolbar clipped',dpi,i,br,wr)
+                    assert br[0]>=wr[0] and br[2]<=wr[2] and br[1]>=wr[1] and br[3]<=wr[3],('toolbar clipped',dpi,i,br,wr)
             s.send(view.hwnd,0x7e,32,packed(1920,1080))
             s.send(view.hwnd,0x31a,0,0)
             time.sleep(.1);center_color(view.hwnd,self.red)
