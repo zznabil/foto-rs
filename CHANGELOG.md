@@ -1,5 +1,10 @@
 # Changes
 
+## 1.0.5
+
+- Update the development-only SPDX validation dependency rpds-py from 2026.6.3 to 2026.9.1 with verified PyPI artifact hashes.
+- Viewer features and runtime dependencies are unchanged.
+
 ## 1.0.4
 
 - Update the fixture-generation dependency to Pillow 13.0.0, addressing nine GitHub advisories including a critical JPEG decoder issue. Pillow is not shipped in the viewer.

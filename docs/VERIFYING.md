@@ -5,7 +5,7 @@ Download the Windows ZIP, `SHA256SUMS.txt` and optional source/inventory records
 ## Check integrity
 
 ```powershell
-Get-FileHash .\Foto-1.0.4-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\Foto-1.0.5-windows-x64.zip -Algorithm SHA256
 ```
 
 Compare the result with the matching entry in `SHA256SUMS.txt`. The portable ZIP also contains an internal checksum ledger, fresh test reports, build metadata and third-party notices.
@@ -15,7 +15,7 @@ Compare the result with the matching entry in `SHA256SUMS.txt`. The portable ZIP
 With a current GitHub CLI, verify the artifact against this repository and release workflow:
 
 ```powershell
-gh attestation verify .\Foto-1.0.4-windows-x64.zip --repo zznabil/foto-rs --signer-workflow zznabil/foto-rs/.github/workflows/release.yml --source-ref refs/tags/v1.0.4 --deny-self-hosted-runners
+gh attestation verify .\Foto-1.0.5-windows-x64.zip --repo zznabil/foto-rs --signer-workflow zznabil/foto-rs/.github/workflows/release.yml --source-ref refs/tags/v1.0.5 --deny-self-hosted-runners
 ```
 
 For an exact-source policy, add `--source-digest COMMIT`, using the full commit from the release's `build-info.json` and protected tag. Provenance is verified for the ZIP and JSON release records. `provenance.jsonl` is the downloadable attestation bundle. The checksum ledger and bundle are not claimed to attest themselves.
@@ -24,7 +24,7 @@ A digest identifies bytes. Provenance identifies the source/workflow that produc
 
 ## Rebuild the supplied source
 
-Extract `Foto-1.0.4-source.zip`. It contains the project, original build scripts, lockfile, vendored Cargo dependencies and source-specific Cargo configuration. With the pinned Rust toolchain, its rust-docs notices and Microsoft build tools already installed:
+Extract `Foto-1.0.5-source.zip`. It contains the project, original build scripts, lockfile, vendored Cargo dependencies and source-specific Cargo configuration. With the pinned Rust toolchain, its rust-docs notices and Microsoft build tools already installed:
 
 ```powershell
 cargo build --locked --release --offline
