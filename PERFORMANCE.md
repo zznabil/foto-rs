@@ -1,5 +1,7 @@
 # Foto performance loop
 
+This document preserves the original 1.0.2 optimization wave. See [RECURSIVE.md](RECURSIVE.md) for the subsequent fresh-baseline wave, oversized-EXIF repair, broadened gates and new three-candidate plateau.
+
 User request: improve performance and resource usage, preserve behavior, and continue until repeated attempts reach a plateau. The v1.0.0 baseline and a separate pre-optimization 1.0.1 archive remain frozen locally.
 
 ## Method and stopping rule
