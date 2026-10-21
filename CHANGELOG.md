@@ -1,6 +1,14 @@
 # Changes
 
+## 1.0.4
+
+- Resolve unpublished GitHub releases through their numeric release ID before downloading and verifying them. The release-by-tag REST endpoint excludes drafts.
+- Report actual publication state separately from whether the verifier performed publication.
+- First public release; includes the viewer and release safeguards prepared for the unpublished 1.0.3 candidate.
+
 ## 1.0.3
+
+Unpublished candidate. Its tagged build passed, but publication stopped at draft lookup. Superseded by 1.0.4.
 
 - Add Defender scans of built and independently downloaded executables; retain hash-bound scan evidence and block detected or inconclusive results. Document the 1.0.2 detection and its limits in docs/DEFENDER.md.
 - Validate inventories against the pinned official SPDX schema and preserve identical metadata bytes inside ZIPs and detached assets on Windows.
