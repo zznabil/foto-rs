@@ -1,5 +1,9 @@
 # Foto
 
+### The founding brief
+
+> Build a minimal, lightweight photo viewer for Windows 10 and 11, inspired by Windows Photos and the classic Windows Photo Viewer. Prioritize **lightning-fast startup, instantaneous image display, snappy navigation, and low CPU and memory usage.** Keep the interface simple and unobtrusive, with essential viewing controls. Focus on **speed, responsiveness, and reliability.**
+
 [![CI](https://github.com/zznabil/foto-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/zznabil/foto-rs/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/zznabil/foto-rs)](https://github.com/zznabil/foto-rs/releases/latest)
 [![License: GPL v3 or later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
