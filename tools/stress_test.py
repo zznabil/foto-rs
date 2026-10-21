@@ -359,9 +359,14 @@ class Suite:
             s.wait(lambda:s.text(view.hwnd)=='photo1.jpg — Foto','soak final selection',20)
             s.command(view.hwnd,103);time.sleep(.5)
             # Navigation resets rotation; if the last action was already first, reset by visiting last.
+            last_presented = len(s.events(view.log,'image'))
             s.key(view.hwnd,0x23);s.wait(lambda:s.text(view.hwnd)=='photo10.jpg — Foto','soak last')
+            s.wait(lambda:len(s.events(view.log,'image'))>last_presented,'soak last image presentation',20)
+            presented = len(s.events(view.log,'image'))
             s.key(view.hwnd,0x24);s.wait(lambda:s.text(view.hwnd)=='photo1.jpg — Foto','soak first')
-            time.sleep(.1);s.pixel_corners(view.hwnd)
+            # A title changes when selection starts, before an uncached decode and paint.
+            s.wait(lambda:len(s.events(view.log,'image'))>presented,'soak final image presentation',20)
+            s.pixel_corners(view.hwnd)
             time.sleep(1);final=resources(view.process)
             assert final['gdi']<=base['gdi']+4,('GDI growth',base,final)
             assert final['user']<=base['user']+4,('USER growth',base,final)
