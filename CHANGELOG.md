@@ -2,6 +2,8 @@
 
 ## 1.0.4
 
+- Update the fixture-generation dependency to Pillow 13.0.0, addressing nine GitHub advisories including a critical JPEG decoder issue. Pillow is not shipped in the viewer.
+- Check all exact Python development pins against PyPI's version-specific advisory feed in CI and scheduled runs, alongside GitHub dependency review and Dependabot alerts.
 - Resolve unpublished GitHub releases through their numeric release ID before downloading and verifying them. The release-by-tag REST endpoint excludes drafts.
 - Report actual publication state separately from whether the verifier performed publication.
 - First public release; includes the viewer and release safeguards prepared for the unpublished 1.0.3 candidate.
