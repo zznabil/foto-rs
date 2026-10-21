@@ -63,7 +63,7 @@ def check(directory,expected_commit):
     require({g['id'] for g in proof['gates']}=={'offline-build','offline-unit','portable','version-info','smoke'} and all(g['exit_code']==0 and g['verdict']=='PASS' for g in proof['gates']),'Incomplete source rebuild gates')
     with zipfile.ZipFile(directory/f'Foto-{version}-windows-x64.zip') as archive:
         names=safe_members(archive);prefix=f'Foto-{version}/'
-        required_inside={'foto.exe','LICENSE','COPYRIGHT','THIRD_PARTY.md','README.txt','build-info.json','sbom.spdx.json','SHA256SUMS.txt','evidence/checks.json','evidence/smoke.json','evidence/stress.json','evidence/malformed.json','licenses/rust/COPYRIGHT-library.html'}
+        required_inside={'foto.exe','LICENSE','COPYRIGHT','THIRD_PARTY.md','README.txt','build-info.json','sbom.spdx.json','SHA256SUMS.txt','evidence/checks.json','evidence/smoke.json','evidence/stress.json','evidence/malformed.json','evidence/defender.json','licenses/rust/COPYRIGHT-library.html'}
         require({prefix+x for x in required_inside}<=set(names),'Incomplete portable ZIP')
         executable=archive.read(prefix+'foto.exe')
         require(hashlib.sha256(executable).hexdigest()==build['exe_sha256'],'Packaged executable differs from tested build')
@@ -76,9 +76,14 @@ def check(directory,expected_commit):
             require(hashlib.sha256(archive.read(prefix+name)).hexdigest()==digest,'Portable ZIP internal checksum mismatch')
             internal[name]=digest
         require({prefix+name for name in internal}==set(names)-{prefix+'SHA256SUMS.txt'},'Unlisted portable ZIP members')
-        for name in ['checks','smoke','stress','malformed']:
+        for name in ['checks','smoke','stress','malformed','defender']:
             report=json.loads(archive.read(prefix+f'evidence/{name}.json'))
             require(report['exe_sha256']==build['exe_sha256'],'Stale runtime evidence')
+            if name=='defender':
+                require(report['post_scan_sha256']==build['exe_sha256'] and report['exit_code']==0
+                        and 'found no threats.' in report['stdout']
+                        and report['status']['AntivirusEnabled'] and report['status']['RealTimeProtectionEnabled'],
+                        'Defender did not establish a clean result for these bytes')
             if name=='checks':require(report['source_commit']==expected_commit and not report['tracked_tree_dirty'],'Tested source mismatch')
             if name=='stress':require(len(report['results'])==12 and all(x['verdict']=='PASS' for x in report['results']),'Journey failure')
             else:require(report['verdict']=='PASS','Failed runtime evidence')
@@ -104,6 +109,8 @@ def check(directory,expected_commit):
             if 'source' in package:
                 require(prefix+f'vendor/{package["name"]}-{package["version"]}/Cargo.toml' in names,'Incomplete vendored dependency closure')
     inventory=json.loads((directory/'sbom.spdx.json').read_text(encoding='utf-8'))
+    from check_sbom import check as check_sbom
+    check_sbom(inventory)
     require(inventory['spdxVersion']=='SPDX-2.3','Unexpected inventory format')
     actual={(x['name'],x['versionInfo']) for x in inventory['packages'] if x['SPDXID']!='SPDXRef-RustToolchain'}
     expected={(x['name'],x['version']) for x in lock['package']}

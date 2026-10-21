@@ -11,6 +11,7 @@ import subprocess
 import tarfile
 import tomllib
 import zipfile
+from check_sbom import check as check_sbom
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,9 +44,9 @@ def main():
     exe=evidence/'foto.exe'
     assert checks['verdict']=='PASS' and not checks['tracked_tree_dirty']
     assert checks['source_commit']==source_commit and checks['exe_sha256']==digest(exe)
-    expected={'format','clippy','unit','release-build','uia-build','fixtures','portable','version-info','smoke','stress','malformed','source-integrity'}
+    expected={'format','clippy','unit','release-build','uia-build','fixtures','defender','portable','version-info','smoke','stress','malformed','source-integrity'}
     assert {g['id'] for g in checks['gates']}==expected and all(g['verdict']=='PASS' for g in checks['gates'])
-    for name in ['smoke','stress','malformed']:
+    for name in ['smoke','stress','malformed','defender']:
         report=json.loads((evidence/f'reports/{name}.json').read_text(encoding='utf-8'))
         assert report['exe_sha256']==digest(exe)
         if name=='stress':assert len(report['results'])==12 and all(x['verdict']=='PASS' for x in report['results'])
@@ -87,8 +88,9 @@ def main():
     sbom={'spdxVersion':'SPDX-2.3','dataLicense':'CC0-1.0','SPDXID':'SPDXRef-DOCUMENT',
           'name':f'Foto-{version}-Cargo-inventory','documentNamespace':f'https://github.com/zznabil/foto-rs/spdx/{source_commit}',
           'creationInfo':{'created':datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),'creators':['Tool: Foto package_release.py']},
-          'documentComment':'Cargo dependency closure, including build-time proc-macros. Rust toolchain is a build tool; bundled standard-library component notices are separate. Windows system DLL internals are outside scope.',
+          'comment':'Cargo dependency closure, including build-time proc-macros. Rust toolchain is a build tool; bundled standard-library component notices are separate. Windows system DLL internals are outside scope.',
           'packages':packages,'relationships':relationships}
+    check_sbom(sbom)
     build={'version':version,'source_commit':source_commit,'exe_sha256':digest(exe),'exe_bytes':exe.stat().st_size,
            'rustc':checks['rustc'],'host':checks['host'],'runner_image':checks['runner_image'],
            'workflow_ref':checks.get('workflow_ref'),'run_url':checks.get('run_url'),
@@ -140,8 +142,8 @@ Build details and dependency inventory: build-info.json and sbom.spdx.json.
         if path.is_file():source['vendor/'+path.relative_to(vendor).as_posix()]=path.read_bytes()
     source['SOURCE_COMMIT.txt']=(source_commit+'\n').encode()
     write_zip(output/f'Foto-{version}-source.zip',source,f'Foto-{version}-source')
-    (output/'sbom.spdx.json').write_text(json.dumps(sbom,indent=2)+'\n',encoding='utf-8')
-    (output/'build-info.json').write_text(json.dumps(build,indent=2)+'\n',encoding='utf-8')
+    (output/'sbom.spdx.json').write_bytes(portable['sbom.spdx.json'])
+    (output/'build-info.json').write_bytes(portable['build-info.json'])
     print('FOTO_PACKAGE_PASS')
 
 

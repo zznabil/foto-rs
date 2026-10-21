@@ -60,6 +60,7 @@ def main():
         source.extractall(unpacked)
     exe=unpacked/f'Foto-{build["version"]}/foto.exe'
     for command,marker in [
+        ([sys.executable,str(ROOT/'tools/check_defender.py'),str(exe),'--output',str(directory/'defender-scan.json')],'FOTO_DEFENDER_SCAN_PASS'),
         ([sys.executable,str(ROOT/'tools/check_portable.py'),str(exe)],'PORTABLE_DEPENDENCIES_PASS'),
         ([sys.executable,str(ROOT/'tools/check_version.py'),str(exe),'--version',build['version']],'VERSION_METADATA_PASS'),
         ([sys.executable,str(ROOT/'tools/smoke_test.py'),'--exe',str(exe),'--runs','3'],'FOTO_SMOKE_PASS'),

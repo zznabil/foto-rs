@@ -55,6 +55,7 @@ def main():
         run('uia-build',['cargo','build','--locked','--release','--example','uia_probe'])
         run('fixtures',[sys.executable,'tools/generate_fixtures.py','--bench-only'])
         exe = ROOT/'target/release/foto.exe'
+        run('defender',[sys.executable,'tools/check_defender.py',str(exe),'--output',str(output/'reports/defender.json')],'FOTO_DEFENDER_SCAN_PASS')
         run('portable',[sys.executable,'tools/check_portable.py',str(exe)],'PORTABLE_DEPENDENCIES_PASS')
         version=tomllib.loads((ROOT/'Cargo.toml').read_text(encoding='utf-8'))['package']['version']
         run('version-info',[sys.executable,'tools/check_version.py',str(exe),'--version',version],'VERSION_METADATA_PASS')

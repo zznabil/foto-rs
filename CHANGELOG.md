@@ -2,6 +2,8 @@
 
 ## 1.0.3
 
+- Add Defender scans of built and independently downloaded executables; retain hash-bound scan evidence and block detected or inconclusive results. Document the 1.0.2 detection and its limits in docs/DEFENDER.md.
+- Validate inventories against the pinned official SPDX schema and preserve identical metadata bytes inside ZIPs and detached assets on Windows.
 - Fix toolbar clipping on small/high-DPI desktops by wrapping native controls into additional rows.
 
 - Publish the GPL-3.0-or-later GitHub project with contributor and security guidance.

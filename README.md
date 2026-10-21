@@ -12,6 +12,8 @@ Download the **Windows x64 ZIP** from [the latest release](https://github.com/zz
 
 The executable is unsigned by Windows Authenticode. Release checksums and GitHub build provenance identify the published artifacts; provenance does not replace Windows code signing. See [verification instructions](docs/VERIFYING.md).
 
+Defender scans gate the built and independently downloaded executable. See the [1.0.2 detection investigation](docs/DEFENDER.md) for the affected hash and current evidence limits.
+
 Windows 10 and 11 x64 are the intended desktop targets. Windows 11 has local journey coverage; Windows Server runners provide CI coverage. A separate Windows 10 host and real multi-monitor DPI transfers remain unverified.
 
 ## Use
