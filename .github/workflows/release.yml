@@ -97,7 +97,16 @@ jobs:
       - run: |
           python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.txt
       - run: python tools/generate_fixtures.py --bench-only
+      - name: Enable Defender real-time protection for downloaded executable validation
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Set-MpPreference -DisableRealtimeMonitoring $false
+          Update-MpSignature
+          $status = Get-MpComputerStatus
+          if (-not $status.AntivirusEnabled -or -not $status.RealTimeProtectionEnabled) { throw 'Defender protection is unavailable' }
       - name: Independently download, verify provenance, test the binary, and publish
+        # The hosted image may start with real-time protection disabled.
         run: python tools/publish_release.py --tag "$env:RELEASE_TAG" --expected-commit "$env:SOURCE_COMMIT" --publish
         env:
           GH_TOKEN: ${{ github.token }}
