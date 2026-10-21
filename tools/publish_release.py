@@ -15,6 +15,17 @@ from check_release import check, safe_members, require
 ROOT=Path(__file__).resolve().parents[1]
 
 
+def get_release(tag, repo, api):
+    # The release-by-tag REST endpoint excludes drafts. gh resolves drafts by
+    # listing releases, then the numeric-ID endpoint exposes the exact record.
+    selected=json.loads(subprocess.check_output(['gh','release','view',tag,'--repo',repo,
+                                                 '--json','databaseId,tagName'],text=True))
+    require(selected['tagName']==tag,'Release lookup selected a different tag')
+    release=api('releases/'+str(selected['databaseId']))
+    require(release['tag_name']==tag,'Release record tag mismatch')
+    return release
+
+
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--tag',required=True)
@@ -25,7 +36,7 @@ def main():
     require(re.fullmatch(r'v\d+\.\d+\.\d+',args.tag) is not None,'Invalid release tag')
     require(re.fullmatch(r'[\w.-]+/[\w.-]+',args.repo) is not None,'Invalid repository')
     def api(path):return json.loads(subprocess.check_output(['gh','api',f'repos/{args.repo}/{path}'],text=True))
-    release=api('releases/tags/'+args.tag)
+    release=get_release(args.tag,args.repo,api)
     if args.publish:require(release['draft'],'Refuse to modify an already-published release')
     ref=api('git/ref/tags/'+args.tag)['object']
     if ref['type']=='tag':ref=api('git/tags/'+ref['sha'])['object']
@@ -70,16 +81,18 @@ def main():
     receipt={'verdict':'PASS','tag':args.tag,'source_commit':args.expected_commit,'release_id':release['id'],
              'assets':{name:assets[name]['digest'] for name in sorted(assets)},
              'provenance':'GitHub-hosted release.yml; exact source tag/digest; verified for ZIP and JSON assets',
-             'downloaded_binary_smoke':'PASS','published':False}
+             'downloaded_binary_smoke':'PASS','published':not release['draft'],'publication_performed':False}
     if args.publish:
         subprocess.run(['gh','release','edit',args.tag,'--repo',args.repo,'--draft=false','--latest'],check=True)
-        public=api('releases/tags/'+args.tag)
+        public=api('releases/'+str(release['id']))
         require(not public['draft'] and not public['prerelease'],'Release is not publicly stable')
         require({a['name']:a['digest'] for a in public['assets']}=={name:assets[name]['digest'] for name in assets},'Assets changed during publication')
         receipt['published']=True
+        receipt['publication_performed']=True
     (directory/'publication-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n',encoding='utf-8')
     print('PUBLICATION_RECEIPT',directory/'publication-receipt.json')
-    print('FOTO_PUBLISHED_RELEASE_PASS' if args.publish else 'FOTO_PUBLIC_RELEASE_READBACK_PASS')
+    print('FOTO_PUBLISHED_RELEASE_PASS' if args.publish else
+          'FOTO_DRAFT_RELEASE_READBACK_PASS' if release['draft'] else 'FOTO_PUBLIC_RELEASE_READBACK_PASS')
 
 
 if __name__=='__main__':main()
