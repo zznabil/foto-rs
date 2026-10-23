@@ -1,0 +1,240 @@
+{
+  "schema": 1,
+  "method": "Shared function AST equality plus explicit semantic-closure bindings; no historical runtime imports.",
+  "historical_sources": {
+    "artifacts/performance-100/E057/worker_probe.py": "fb2971c006770d7859882aa3520b335f162607d45e21b6971f585583d86c3941",
+    "artifacts/performance-100/E057/measure.py": "d04b932e4f04feb42856e7b8bb8bd57e837d76382d3ddebf3968ddcaf616dc9c",
+    "artifacts/performance-100/E040/screen.py": "91cc39b27df944db6367fecbcd3d0e927d941b7de276e7057b30ffbc1a43bcc9",
+    "artifacts/performance-100/E011/reassessment-current/peak_memory.py": "c25c0734d5f79415867ab925830d205967a460ac535560dc1bc0a664935683c6",
+    "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py": "1cc9422b450ea27a78ca8ccffd8daf5ebf4d437af6081e02cce0c02e6b06cdd4",
+    "artifacts/performance-100/E057/feasibility.py": "a6fbd36e42d08c95fb7882b5cbdad107eee1e00e1f5d8bcb7303c6b4c3189ed8"
+  },
+  "modules": {
+    "protocol.py": {
+      "sha256": "662184ea3494b2f6a974fe0066c87dd3314f7c9acfe3b1581efe9aff318a9230",
+      "functions": {
+        "header": {
+          "origin": "artifacts/performance-100/E057/worker_probe.py",
+          "original_ast_sha256": "1de170851ad76753a490b656883e669ffa8ec6319912bcf985c0c6952c2fab30",
+          "equivalence": "AST exact"
+        },
+        "self_test": {
+          "origin": "artifacts/performance-100/E057/worker_probe.py",
+          "original_ast_sha256": "fb48d2cf5cf219a702d39a8e75955587ec4e1bc6424704b80d9ba3b130413df7",
+          "equivalence": "AST exact"
+        },
+        "parse_probe_timing": {
+          "origin": "artifacts/performance-100/E057/measure.py",
+          "original_ast_sha256": "d5e4c28a149664bc5789ca0803cb9bf3032c97dcea0023d289790d655388e199",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "worker.py": {
+      "sha256": "f605c5b78b7778b0f826351d84af01959aac51627e6828d904e8ddfd865d1684",
+      "functions": {
+        "sample": {
+          "origin": "artifacts/performance-100/E057/worker_probe.py",
+          "original_ast_sha256": "7d0116db5ba29e05efcf34052c0c972b6138d0c209ef8ead184172c596faa2e0",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "measure.py": {
+      "sha256": "5397b4c8f3a7f599be3181b1641f65472d7ca0a286f084d4cafd42f804b2656a",
+      "functions": {
+        "sample": {
+          "origin": "artifacts/performance-100/E057/measure.py",
+          "original_ast_sha256": "4fa5a1259a841fcce07dd9705621819930ae3fc31f97687d928f2b33e53b719c",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "native.py": {
+      "sha256": "109c39f898c8be5340ce4d2f600930bfe1a271c954ab3ae0ca30b1a8f42f97ed",
+      "functions": {
+        "ticks": {
+          "origin": "artifacts/performance-100/E040/screen.py",
+          "original_ast_sha256": "b407714da43975a7722a94b611d1620879d530881da07edda2af0c1ac4256de2",
+          "equivalence": "AST exact"
+        },
+        "raw_cpu": {
+          "origin": "artifacts/performance-100/E040/screen.py",
+          "original_ast_sha256": "9e5866ba4601cc9df0e13081bb5fa71c3fa688970f47d4b8c9fcd518b3bef948",
+          "equivalence": "AST exact"
+        },
+        "snapshot": {
+          "origin": "artifacts/performance-100/E011/reassessment-current/peak_memory.py",
+          "original_ast_sha256": "d6f44449a1f465a6b20307ad5a29a131713c24d93a9f7b832fa0c03dfb8627fc",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "base_guards.py": {
+      "sha256": "58c46fe87b52a23f7f2d4bbaac2a75c08e06fe91e9674023ba969abb77e77f44",
+      "functions": {
+        "require": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "83f41314304103b0453b967c7ee083f4fb12c4082a778a6a4f838d9ba69cd76c",
+          "equivalence": "AST exact"
+        },
+        "mutated_digest": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "7b126ea8f12fabdb60468fae09aafa495f1947615de1ff86d5ca4b0d604a0e44",
+          "equivalence": "AST exact"
+        },
+        "raw_cpu_guard": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "f625f8db8a08bace8ab702f591ab4788ec587017790f863843a060ba5afec7bf",
+          "equivalence": "AST exact"
+        },
+        "common_row_guard": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "b378887655d0795e053d4475b069ddcae9adaf4bee17d680becfc8acacda0833",
+          "equivalence": "AST exact"
+        },
+        "total_ms": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "efe33cdd9595151d43f17772eb75b13e1fcb61096d8d580e5e4d6b05c277f77d",
+          "equivalence": "AST exact"
+        },
+        "validate_control": {
+          "origin": "artifacts/performance-100/decoder-measurement-calibration-20261023/run.py",
+          "original_ast_sha256": "8adea6686e6d8c2896e881ae0b21ffa956a11188794227b81ec6ab28531a4544",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "guards.py": {
+      "sha256": "707939fd8f0f49e6ca7f918a29894c9035306b0c6a14f7fad157688e77832ddc",
+      "functions": {
+        "argument_guard": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "c1da2169cfe4924304304e9eef89f346171e840b60b048b3ea80b216e4c0d51e",
+          "equivalence": "AST exact"
+        },
+        "delay_guard": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "aad21f7d74cd790727e97cf8992476f43f75231fa37d7d01a581c87c266bb136",
+          "equivalence": "AST exact"
+        },
+        "common_row_guard": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "b95d6ce4e3d733010231a3990bc3134d0f9eb7ce06d0ce37db9cd59cf8ec37c3",
+          "equivalence": "AST exact"
+        },
+        "total_ns": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "2f01df4f1cfa8933451d1177ac91e0e186c5bfabc175dadccc62752675e3d37d",
+          "equivalence": "AST exact"
+        },
+        "validate_control": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "db1ad37ef938b85683b6d8e2fb79e1452830c2b9807ec0c6b872b4c6927d40c5",
+          "equivalence": "AST exact"
+        }
+      }
+    },
+    "supervisor.py": {
+      "sha256": "e64c05968138bfc85a656d176116d05b6fef46d2b20d2a8feb9d3598e2d6fdf1",
+      "functions": {
+        "require": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "83f41314304103b0453b967c7ee083f4fb12c4082a778a6a4f838d9ba69cd76c",
+          "equivalence": "AST exact"
+        },
+        "digest": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "770e1a37c1ae5b7cac0867509fec22e706b537d7623ba9cd60a4ebc9dbde5e5c",
+          "equivalence": "AST exact"
+        },
+        "write_json": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "f6ca1ee0c0b1281bb3a50c259fa751ab58dbb7c0f9d0f6cbbf1cfc6cc09bb478",
+          "equivalence": "AST exact"
+        },
+        "load_json": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "dddaca926cba59f1291d71766cdc02ffdf1fa19d2e28f10bfd123136faa65c45",
+          "equivalence": "AST exact"
+        },
+        "freeze_paths": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "e836e5a84dbe876cd3aa193a98fce2ab627553bf7b4ca5396766de28c3096183",
+          "equivalence": "AST exact"
+        },
+        "assert_frozen": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "f151c280bd694354a20ec80cb8ff46a3cbd75dcd54c3c75a38909a6d288d694a",
+          "equivalence": "AST exact"
+        },
+        "child_report": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "9c03ce6478ba38451806d4b38223e308c99dcbb4002da2b1dabd979fd36e3df0",
+          "equivalence": "AST exact"
+        },
+        "child_failure_evidence": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "54e03598e5e007eb4aed1cc3edbefd6f2db29b5b6aebd4213ae4084074c6d347",
+          "equivalence": "AST exact"
+        },
+        "cleanup_report": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "90061da48450dd2e254cf96aa4666df90be2ae1b194d61b9a84574db321fa977",
+          "equivalence": "AST exact"
+        },
+        "record_child_failure": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "566645df9151bee820a7d72531c9cdbe8d7b5d006b9ee5d941da8df0b5c7a226",
+          "equivalence": "AST exact"
+        },
+        "run_build": {
+          "origin": "artifacts/performance-100/E057/feasibility.py",
+          "original_ast_sha256": "74ec672c3727fb707af8bcc5c38ecb0aea0490fd19e54173af7b3e3db08b4be2",
+          "equivalence": "AST exact after documented timeout binding"
+        }
+      }
+    }
+  },
+  "adaptations": {
+    "imports": "Canonical repository tools and package-relative imports replace artifact-relative paths.",
+    "worker_identity": "Expected harness hash is derived from the canonical worker file; raw argument and payload contracts are unchanged.",
+    "guard_owner": "Both wrapper and base own INNER512 BATCHES16 MIB1048576; load_guards returns the same base module.",
+    "build_supervision": "One optional timeout keyword preserves the original 1200-second default and supplies 60 seconds for the isolated peak setup; exception and cleanup code is unchanged.",
+    "peak_calibration": "Original 17 assertion AST multiset retained; fresh child avoids controller priming. Layout and snapshots are inside failure handling, with host/PID/phase/allocation metadata and primary/cleanup evidence.",
+    "optimized_python": "All executable contract modules reject optimized Python."
+  },
+  "limits": [
+    "These provenance records describe source transport, not host or performance observations.",
+    "Fresh local and remote native controls remain required."
+  ],
+  "peak_assertions": {
+    "count": 17,
+    "multiset_ast_sha256": "226fce5fb773fbda4ba4d78adfecb79843c9e6830a8f0cf1850c65fff048fbc4",
+    "unchanged": true
+  },
+  "helper_ffi_closure": {
+    "current_tools_stress_sha256": "2ddd150e2516c65452cff535eb86c5c656298c58b154b888725052109a2a3827",
+    "frozen_tools_stress_sha256": "2DDD150E2516C65452CFF535EB86C5C656298C58B154B888725052109A2A3827",
+    "stress_segments_ast_equal": {
+      "MemoryInfo": "6F900BEA8CE0A5BA4AB2519809DC7FC4693EC69CAEC6328370F887707B323C60",
+      "get_memory": "17EE8742E793802100345D6E5D58779B26C192F325BE2816B0CF7E6DC18BF640",
+      "get_handles": "2C2B675635A1AFC88C788956D71A29B2501F99F07F5C1B9B78AC8AECC561E480",
+      "get_gui": "B285524EE57A5D234E74EEC346DEB65363A46B83B4BA9D8B051C5CE22BF2EEA6",
+      "resources": "941C49FD8AAAA278B5559FE5AD1635E7BFFA4DABA56976CE1CEA0ACA89EFB570"
+    },
+    "current_tools_smoke_sha256": "2404bcbe784f914e2bcf14a84174811ac0f008410e15447fde345eac305a9e2b",
+    "frozen_tools_smoke_sha256": "2404BCBE784F914E2BCF14A84174811AC0F008410E15447FDE345EAC305A9E2B",
+    "smoke_segments_ast_equal": {
+      "api": "31CE8EDF5BED418BD00A17B3AA53EF8B2E51195615741B7061F6380EFF7E1634",
+      "user": "B4CC4152F9512A778585B4EB6070BAA48A6685D5F5032946D5B28535826D90AE",
+      "kernel": "E7B71C898CAB36B9CDF2AA7AD6E509A2F6B7BDAB9A0461ACC24B7C32E70F6F34",
+      "gdi": "9C1E362CBB780F3DB54EE7D16B212CC886903D8AD71FC811BB8A6E01D2B4533F",
+      "CALLBACK": "1F804C280BF624D0FECA78294DBC6BA974E92DB7B5314721956D2DD5D95E2773",
+      "get_pid": "7F7700AC058C5A284CC2C60515911D685EDFFFC956E52CD7382AE5C5CEF9ACD6",
+      "process_times": "44C14A811DA044C2DF3DCE9AF44E52D8B2DFB3FC10844C1B9428FB7D410523AC",
+      "cpu_ms": "A443C00B653862B35BEB6DC7D9A8CB028B3B441008C1010D0EBFDA42D6811851"
+    },
+    "interpretation": "The actual isolated upstream checkout helpers are byte-identical to the frozen E057 helpers, including all listed critical FFI/resource segments. The earlier export proof current_tools hashes described dirty root helpers and are superseded here."
+  }
+}

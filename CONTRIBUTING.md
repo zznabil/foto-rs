@@ -35,6 +35,8 @@ Verification tools are downloaded from pinned upstream releases and checked agai
 
 For performance work, compare unchanged builds to estimate noise, alternate control/candidate order, keep synthetic inputs and settling periods fixed, and record both gains and regressions. The historical `tools/perf_compare.py` requires two supplied Windows executables. Do not present warm-cache results as cold-start guarantees or the cache budget as a process-memory cap.
 
+The [decoder protocol calibration](tools/decoder_calibration/README.md) checks the measurement setup separately from release verification and candidate acceptance.
+
 ## Pull requests
 
 Describe the user-visible change, relevant tests and remaining limits. Do not include user photos, credentials, generated binaries or private machine data. Main requires successful checks and resolved conversations. The current solo-maintainer configuration requires a PR but does not claim independent human approval. Squash merging keeps release commits easy to identify.
