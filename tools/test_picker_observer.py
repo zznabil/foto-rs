@@ -186,6 +186,61 @@ class PickerObserverTests(unittest.TestCase):
             self.assertEqual(report["status"], "PICKER_DIAGNOSTIC_FAILURE_PRESERVED")
             self.assertTrue(report["observation_errors"])
 
+    def add_query_state(self, native, changes, destroyed=False):
+        snapshot = native.snapshot
+
+        def changed(*args):
+            row = snapshot(*args)
+            state = {"hwnd": 123, "exists": True, "exists_after": True, "owned": True,
+                     "pid_query_error": None, "title_query_error": 0, "class_query_error": 0,
+                     "gui": {"ok": True, "error": None}}
+            if destroyed:
+                state["hwnd"] = row["target"]["hwnd"]
+                if not row["target"]["exists"]:
+                    state.update(changes, exists=False, exists_after=False, owned=False)
+            else:
+                state.update(changes)
+            row["main" if not destroyed else "target"] = state
+            return row
+
+        native.snapshot = changed
+
+    def test_failed_live_native_queries_invalidate_diagnostic(self):
+        failures = ({"gui": {"ok": False, "error": 5}}, {"title_query_error": 5},
+                    {"class_query_error": 5}, {"pid_query_error": 5, "owned": False}, {"owned": False})
+        for failure in failures:
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                s, native, report, save = self.run_case(directory)
+                self.add_query_state(native, failure)
+                with self.assertRaisesRegex(RuntimeError, "diagnostic invalid"):
+                    observer.observe(s, native, report, lambda: save(report))
+                self.assertEqual(report["oracle"], "PASS_DIAGNOSTIC_ONLY")
+                self.assertTrue(report["observation_errors"])
+                self.assertTrue(report["terminal"])
+
+    def test_destroyed_picker_query_failure_is_expected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            s, native, report, save = self.run_case(directory)
+            self.add_query_state(native, {"pid_query_error": 1400}, destroyed=True)
+            observer.observe(s, native, report, lambda: save(report))
+            self.assertEqual(report["status"], "PICKER_OBSERVED_DIAGNOSTIC_ONLY")
+            self.assertFalse(report["observation_errors"])
+            before = next(row for row in report["samples"] if row["phase"] == "before_post")
+            self.assertTrue(before["target"]["exists"] and before["target"]["owned"])
+            self.assertFalse(report["samples"][-1]["target"]["exists"])
+            self.assertEqual(report["samples"][-1]["target"]["pid_query_error"], 1400)
+            self.assertEqual(len(report["posts"]), 1)
+
+    def test_live_query_failure_does_not_mask_original_timeout(self):
+        with tempfile.TemporaryDirectory() as directory:
+            s, native, report, save = self.run_case(directory, residual=True)
+            self.add_query_state(native, {"gui": {"ok": False, "error": 5}})
+            with self.assertRaisesRegex(AssertionError, "Timed out: file picker cancellation"):
+                observer.observe(s, native, report, lambda: save(report))
+            self.assertEqual(report["oracle"], "FAIL")
+            self.assertTrue(report["observation_errors"])
+            self.assertTrue(report["terminal"])
+
     def test_second_close_post_is_rejected_before_sending(self):
         with tempfile.TemporaryDirectory() as directory:
             s, native, report, save = self.run_case(directory, duplicate=True)

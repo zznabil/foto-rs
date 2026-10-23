@@ -30,6 +30,19 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def native_query_errors(state):
+    if not state or not (state.get("exists") and state.get("exists_after")):
+        return []  # A picker destroyed during collection is expected after cancellation.
+    if state.get("pid_query_error") is not None:
+        return ["pid"]
+    if not state.get("owned"):
+        return ["ownership"]
+    errors = [name for name in ("title", "class") if state.get(name + "_query_error") != 0]
+    if not state.get("gui", {}).get("ok"):
+        errors.append("gui_thread")
+    return errors
+
+
 class Native:
     def __init__(self, smoke, stress):
         self.s, self.t = smoke, stress
@@ -111,10 +124,12 @@ class Native:
         primary = None
         try:
             result["hidden"] = self.state(hwnd, os.getpid())
+            assert not native_query_errors(result["hidden"]), "hidden control query failed"
             assert hwnd in s.windows(os.getpid(), "#32770")
             assert result["hidden"]["exists"] and result["hidden"]["visible"] is False
             self.show(hwnd, 4)  # SW_SHOWNOACTIVATE; only our synthetic window.
             result["shown"] = self.state(hwnd, os.getpid())
+            assert not native_query_errors(result["shown"]), "shown control query failed"
             assert result["shown"]["visible"] is True and int(self.foreground() or 0) != int(hwnd)
         except BaseException as error:
             primary = error
@@ -159,6 +174,9 @@ def observe(s, native, report, save):
                 row["timing"] = {"path": str(log), "sha256": digest(log), "rows": len(rows),
                                  "errors": [item for item in rows if item.get("event") in ("error", "graphics_error")]}
             report["samples"].append({"phase": phase, "oracle_result": result, **row})
+            for state in (row.get("main"), row.get("target"), *row.get("matches", [])):
+                for query in native_query_errors(state):
+                    report["observation_errors"].append({"phase": phase, "hwnd": state["hwnd"], "query": query})
         except Exception as error:
             report["observation_errors"].append({"phase": phase, "error": repr(error)})
 
