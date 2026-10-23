@@ -116,22 +116,35 @@ impl Decoder {
                 8 => WICBitmapTransformRotate270,
                 _ => WICBitmapTransformRotate0,
             };
-            if transform != WICBitmapTransformRotate0 {
-                let rotator = self.factory.CreateBitmapFlipRotator()?;
-                rotator.Initialize(&source, transform)?;
-                source = rotator.cast()?;
-            }
             let (mut width, mut height) = (0, 0);
             source.GetSize(&mut width, &mut height)?;
-            let original = (width, height);
+            let original = if matches!(orientation, 5..=8) {
+                (height, width)
+            } else {
+                (width, height)
+            };
             let size = bounded_size(width, height).ok_or_else(|| {
                 windows::core::Error::new(E_INVALIDARG, "Invalid image dimensions")
             })?;
-            if size != original {
+            if size != (width, height) {
                 let scaler = self.factory.CreateBitmapScaler()?;
                 scaler.Initialize(&source, size.0, size.1, WICBitmapInterpolationModeFant)?;
                 source = scaler.cast()?;
                 (width, height) = size;
+                if transform != WICBitmapTransformRotate0 {
+                    // Materialize bounded rows once; rotation otherwise re-runs the scaler per column.
+                    source = self
+                        .factory
+                        .CreateBitmapFromSource(&source, WICBitmapCacheOnLoad)?
+                        .cast()?;
+                }
+            }
+            // Scale in decoder scanline order before a rotation makes rows nonlocal.
+            if transform != WICBitmapTransformRotate0 {
+                let rotator = self.factory.CreateBitmapFlipRotator()?;
+                rotator.Initialize(&source, transform)?;
+                source = rotator.cast()?;
+                source.GetSize(&mut width, &mut height)?;
             }
             let converter = self.factory.CreateFormatConverter()?;
             converter.Initialize(

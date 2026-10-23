@@ -1,5 +1,11 @@
 # Changes
 
+## Unreleased
+
+- Repair extreme decode latency for oversized EXIF-oriented images by materializing bounded scaled rows before rotation/mirroring. A synthetic image that did not display after 90 seconds now draws in a measured 451 ms median on the test host.
+- Expand native acceptance coverage from twelve to eighteen journeys, including large/small EXIF pixels, picker acceptance, Space/Enter, anchored zoom, boundaries and busy shutdown.
+- Add paired multi-workload measurements with raw observations, p95/p99 and resource counters. Reject and revert three subsequent no-gain candidates. Ordinary browsing is not claimed faster; see RECURSIVE.md for regression guards and limitations.
+
 ## 1.0.5
 
 - Update the development-only SPDX validation dependency rpds-py from 2026.6.3 to 2026.9.1 with verified PyPI artifact hashes.
