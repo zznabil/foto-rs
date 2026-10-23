@@ -21,7 +21,7 @@ Use a fresh checkout or archive an earlier `artifacts/ci` directory. Commit the 
 .\.venv\Scripts\python.exe tools/verify.py
 ```
 
-The gate runs formatting, strict all-target Clippy, Rust tests, release/example builds, portable imports, Windows file-version readback, 16 native-window smoke checks, twelve journey charters, a 120-second soak, 30 open/close cycles and 200 malformed-input trials with native UI Automation Invoke. Synthetic images are generated under ignored `artifacts/`; committed decoder fixtures remain unchanged. Run in an interactive desktop session. CI exercises the Windows Server runner desktop; it does not claim human UAT or real monitor transfers.
+The gate runs formatting, strict all-target Clippy, Rust tests, release/example builds, portable imports, Windows file-version readback, 16 native-window smoke checks, eighteen journey charters, a 120-second soak, 30 open/close cycles and 200 malformed-input trials with native UI Automation Invoke. Synthetic images are generated under ignored `artifacts/`; committed decoder fixtures remain unchanged. Run in an interactive desktop session. CI exercises the Windows Server runner desktop; it does not claim human UAT or real monitor transfers.
 
 Run the release-verifier controls and workflow/dependency checks separately:
 

@@ -85,7 +85,7 @@ def check(directory,expected_commit):
                         and report['status']['AntivirusEnabled'] and report['status']['RealTimeProtectionEnabled'],
                         'Defender did not establish a clean result for these bytes')
             if name=='checks':require(report['source_commit']==expected_commit and not report['tracked_tree_dirty'],'Tested source mismatch')
-            if name=='stress':require(len(report['results'])==12 and all(x['verdict']=='PASS' for x in report['results']),'Journey failure')
+            if name=='stress':require(len(report['results'])==18 and {row['id'] for row in report['results']}=={f'J{i:02}' for i in range(1,19)} and all(x['verdict']=='PASS' for x in report['results']),'Journey failure: expected one PASS result for each journey J01..J18')
             else:require(report['verdict']=='PASS','Failed runtime evidence')
     with zipfile.ZipFile(directory/f'Foto-{version}-source.zip') as archive:
         names=safe_members(archive);prefix=f'Foto-{version}-source/'

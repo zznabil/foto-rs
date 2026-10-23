@@ -49,7 +49,7 @@ def main():
     for name in ['smoke','stress','malformed','defender']:
         report=json.loads((evidence/f'reports/{name}.json').read_text(encoding='utf-8'))
         assert report['exe_sha256']==digest(exe)
-        if name=='stress':assert len(report['results'])==12 and all(x['verdict']=='PASS' for x in report['results'])
+        if name=='stress':assert len(report['results'])==18 and {row['id'] for row in report['results']}=={f'J{i:02}' for i in range(1,19)} and all(x['verdict']=='PASS' for x in report['results']), 'Expected one PASS result for each journey J01..J18'
         else:assert report['verdict']=='PASS'
     metadata=json.loads(subprocess.check_output(['cargo','metadata','--locked','--format-version','1'],cwd=ROOT,text=True))
     lock=tomllib.loads((ROOT/'Cargo.lock').read_text(encoding='utf-8'))

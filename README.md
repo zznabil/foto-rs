@@ -55,6 +55,8 @@ Native Win32 controls, WIC decoding, DirectWrite text and a Direct2D software DC
 
 The decoded cache is capped at **192 MiB and five entries**. Active images, rendering bitmaps, codec allocations and in-flight decodes are additional memory. Navigation reuses the previous displayed allocation when prefetch has evicted it. An earlier paired synthetic 24 MP browsing test measured about 50% lower CPU time and 12.5% lower peak working set from that change. Steady memory did not improve, and no startup speedup is claimed. See [the experiment record](PERFORMANCE.md); results depend on workload, hardware, codecs and system load.
 
+Oversized EXIF-oriented images materialize bounded scaled WIC rows before rotation or mirroring. This avoids repeated column scaling; the temporary bitmap uses memory outside the LRU budget. See the [recursive experiment record](RECURSIVE.md) for historical measurements, regression guards and limits.
+
 Each release includes fresh test evidence in its portable ZIP. Historical local reports are not CI or release acceptance for a later build.
 
 ## Build and contribute
@@ -65,7 +67,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for prerequisites, pinned dependencies an
 cargo build --locked --release
 ```
 
-The executable is `target\release\foto.exe`. Python and Pillow are test tools only.
+The executable is `target\release\foto.exe`. Python and Pillow are test tools only. The verification gate covers eighteen native journey charters, including oversized EXIF pixels, Unicode picker acceptance, keyboard activation, anchored zoom and busy shutdown. Run Python without `-O`, because assertions are acceptance gates.
 
 [Changes](CHANGELOG.md) | [Release process](docs/RELEASING.md) | [Security reports](SECURITY.md) | [Baseline](BASELINE.md)
 

@@ -16,6 +16,7 @@ import platform
 import subprocess
 import sys
 import time
+import traceback
 from PIL import Image
 import smoke_test as s
 
@@ -142,7 +143,8 @@ class Suite:
             function()
             result = {"id": name, "verdict": "PASS"}
         except Exception as error:
-            result = {"id": name, "verdict": "FAIL", "error": f"{type(error).__name__}: {error}"}
+            result = {"id": name, "verdict": "FAIL", "error": f"{type(error).__name__}: {error}",
+                      "traceback": traceback.format_exc()}
         finally:
             for session in list(self.sessions):session.close()
         result["seconds"] = round(time.monotonic()-started, 3)
@@ -416,6 +418,179 @@ class Suite:
             self.metrics['dpi_simulation']={'messages':20,'baseline_gdi':base['gdi'],'final_gdi':final['gdi']}
         finally:view.close()
 
+    def j13(self):
+        # Check every EXIF transform in the actual renderer, not just decoder bytes.
+        expected = [[0,1,2,3],[1,0,3,2],[3,2,1,0],[2,3,0,1],
+                    [0,2,1,3],[2,0,3,1],[3,1,2,0],[1,3,0,2]]
+        colors = [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]
+        view=Session(self,'exif-pixels')
+        try:
+            for orientation in range(1,9):
+                view.drop(ROOT/'tests/fixtures'/f'orientation-{orientation}.jpg')
+                width,height=(64,48) if orientation<=4 else (48,64)
+                _,_,w,h=rect(view.hwnd,True);dpi=s.get_dpi(view.hwnd)/96
+                left=(w-width)/2;top=(52*dpi+h-34*dpi-height)/2
+                with s.client_dc(view.hwnd) as (dc,_,_):
+                    for corner,(x,y) in enumerate([(0.25,0.25),(.75,.25),(.25,.75),(.75,.75)]):
+                        value=s.get_pixel(dc,round(left+x*width),round(top+y*height))
+                        actual=(value&255,value>>8&255,value>>16&255)
+                        target=colors[expected[orientation-1][corner]]
+                        assert all(abs(a-b)<8 for a,b in zip(actual,target)),(orientation,corner,actual,target)
+            view.drop(ROOT/'artifacts/photos/photo1.jpg')
+            s.key(view.hwnd,0x52);time.sleep(.06);s.pixel_corners(view.hwnd,rotated=True)
+            s.key(view.hwnd,0x27)
+            s.wait(lambda:s.text(view.hwnd)=='photo2.jpg — Foto','navigation resets rotation')
+            time.sleep(.08);s.pixel_corners(view.hwnd)
+        finally:view.close()
+
+    def j14(self):
+        # A single-photo folder must not wrap or reload at either boundary.
+        folder=self.output/'single';folder.mkdir()
+        selected=folder/'only.png';selected.write_bytes((self.assets/'photo1.png').read_bytes())
+        view=Session(self,'boundaries',selected)
+        try:
+            center_color(view.hwnd,self.red)
+            assert not s.enabled(s.get_item(view.hwnd,101)) and not s.enabled(s.get_item(view.hwnd,102))
+            before=len(s.events(view.log,'image'))
+            for key in [0x25,0x27,0x21,0x22,0x24,0x23]*5:s.key(view.hwnd,key)
+            # SendMessage is ordered after queued keys only once the UI services the queue.
+            time.sleep(.15)
+            assert len(s.events(view.log,'image'))==before
+            assert s.text(view.hwnd)=='only.png — Foto';center_color(view.hwnd,self.red)
+            s.command(view.hwnd,107)
+            dialog=s.wait(lambda:s.windows(view.process.pid,'#32770'),'help opens')[0]
+            assert s.post(dialog,0x10,0,0)
+            s.wait(lambda:not s.windows(view.process.pid,'#32770'),'help dismissed')
+            center_color(view.hwnd,self.red)
+            s.key(view.hwnd,0x1b)
+            assert view.process.wait(timeout=4)==0
+        finally:view.close()
+
+    def j15(self):
+        # Closing must remain prompt while foreground/prefetch/scan work is pending.
+        durations=[]
+        for index in range(12):
+            view=Session(self,'close-busy')
+            for path in [ROOT/'artifacts/photos/photo1.jpg',self.assets/'photo3.png',
+                         ROOT/'artifacts/photos/photo2.jpg']:
+                s.drop_file(view.hwnd,path)
+            started=time.perf_counter();view.close()
+            durations.append((time.perf_counter()-started)*1000)
+        self.metrics['busy_close_ms']=durations
+        assert max(durations)<4000
+
+    def j16(self):
+        # Rotating before Fant scaling can make a large EXIF photo take minutes.
+        from PIL import ImageDraw
+        image=Image.new('RGB',(9000,4000));draw=ImageDraw.Draw(image)
+        colors=[(255,0,0),(0,255,0),(0,0,255),(255,255,0)]
+        for bounds,color in zip([(0,0,4499,1999),(4500,0,8999,1999),
+                                 (0,2000,4499,3999),(4500,2000,8999,3999)],colors):
+            draw.rectangle(bounds,fill=color)
+        expected=[[0,1,2,3],[1,0,3,2],[3,2,1,0],[2,3,0,1],
+                  [0,2,1,3],[2,0,3,1],[3,1,2,0],[1,3,0,2]]
+        view=Session(self,'large-exif');latencies=[]
+        try:
+            for orientation in [6,1,2,3,4,5,7,8]:
+                path=self.output/f'large-exif-{orientation}.jpg'
+                exif=Image.Exif();exif[274]=orientation
+                image.save(path,quality=94,exif=exif)
+                started=time.perf_counter();view.drop(path)
+                latencies.append((time.perf_counter()-started)*1000)
+                row=s.events(view.log,'image')[-1]
+                width,height=(8192,3640) if orientation<=4 else (3640,8192)
+                assert (int(row['width']),int(row['height']))==(width,height),row
+                _,_,w,h=rect(view.hwnd,True);dpi=s.get_dpi(view.hwnd)/96
+                scale=min(w/width,(h-86*dpi)/height)
+                left,top=(w-width*scale)/2,52*dpi+(h-86*dpi-height*scale)/2
+                for corner,(x,y) in enumerate([(.25,.25),(.75,.25),(.25,.75),(.75,.75)]):
+                    actual=pixel(view.hwnd,left+x*width*scale,top+y*height*scale)
+                    target=colors[expected[orientation-1][corner]]
+                    assert all(abs(a-b)<8 for a,b in zip(actual,target)),(orientation,corner,actual,target)
+            assert max(latencies)<5000,('oversized EXIF responsiveness guard',latencies)
+            self.metrics['oversized_exif_ms']=latencies
+        finally:view.close()
+
+    def j17(self):
+        folder=self.output/'picker';folder.mkdir()
+        chosen=folder/'photo1 café 猫.png';next_photo=folder/'photo2 café 猫.png'
+        chosen.write_bytes((self.assets/'photo1.png').read_bytes())
+        next_photo.write_bytes((self.assets/'photo2.png').read_bytes())
+        view=Session(self,'picker-accept')
+        try:
+            s.command(view.hwnd,100)
+            dialog=s.wait(lambda:s.windows(view.process.pid,'#32770'),'picker opens')[0]
+            # shortcut: shell picker setup needs 200ms here, use UIA readiness if this flakes.
+            time.sleep(.2)
+            enum=s.api(s.user,'EnumChildWindows',W.BOOL,W.HWND,s.CALLBACK,W.LPARAM)
+            get_id=s.api(s.user,'GetDlgCtrlID',C.c_int,W.HWND)
+            def filename_editor():
+                edits=[]
+                @s.CALLBACK
+                def visit(child,_):
+                    if get_id(child)==1148 and s.text(child,s.get_class)=='Edit':edits.append(child)
+                    return True
+                enum(dialog,visit,0)
+                return edits
+            filename=s.wait(filename_editor,'native filename editor')[0]
+            wait_idle=s.api(s.user,'WaitForInputIdle',W.DWORD,W.HANDLE,W.DWORD)
+            assert wait_idle(view.process._handle,5000)==0
+            value=C.create_unicode_buffer(str(chosen))
+            assert s.send(filename,0xc,0,C.addressof(value))
+            actual=C.create_unicode_buffer(32768)
+            s.send(filename,0xd,len(actual),C.addressof(actual))
+            assert actual.value==str(chosen),('native filename readback',actual.value)
+            button=s.wait(lambda:s.get_item(dialog,1),'native picker Open')
+            assert s.post(button,0xf5,0,0)
+            s.wait(lambda:not s.windows(view.process.pid,'#32770'),'picker accepts selected file')
+            view.ready(chosen);center_color(view.hwnd,self.red)
+            s.wait(lambda:s.enabled(s.get_item(view.hwnd,102)),'picker folder ready')
+            # Space needs the native key-up event; a keydown-only test misses activation.
+            set_foreground(view.hwnd)
+            for _ in range(12):
+                if focus(view.hwnd)==s.get_item(view.hwnd,102):break
+                s.key(focus(view.hwnd) or view.hwnd,9);time.sleep(.03)
+            assert focus(view.hwnd)==s.get_item(view.hwnd,102)
+            s.key(focus(view.hwnd),0x20)
+            assert s.post(focus(view.hwnd),0x101,0x20,1|(1<<30)|(1<<31))
+            s.wait(lambda:s.text(view.hwnd)==f'{next_photo.name} — Foto','Space activates Next')
+            center_color(view.hwnd,self.green)
+            for _ in range(12):
+                if focus(view.hwnd)==s.get_item(view.hwnd,101):break
+                s.key(focus(view.hwnd) or view.hwnd,9);time.sleep(.03)
+            assert focus(view.hwnd)==s.get_item(view.hwnd,101)
+            s.key(focus(view.hwnd),13)
+            s.wait(lambda:s.text(view.hwnd)==f'{chosen.name} — Foto','Enter activates Previous')
+            center_color(view.hwnd,self.red)
+        finally:view.close()
+
+    def j18(self):
+        from PIL import ImageDraw
+        photo=self.output/'zoom-anchor.png'
+        image=Image.new('RGB',(1600,1200),(0,0,255))
+        ImageDraw.Draw(image).rectangle((917,677,929,689),fill=(255,0,0))
+        image.save(photo)
+        view=Session(self,'zoom-anchor',photo)
+        try:
+            s.send(view.hwnd,0x111,104,0)
+            _,_,w,h=rect(view.hwnd,True);dpi=s.get_dpi(view.hwnd)/96
+            x=round(w/2+123);y=round((52*dpi+h-34*dpi)/2+83)
+            def red_width():
+                with s.client_dc(view.hwnd) as (dc,_,_):
+                    return sum((s.get_pixel(dc,x+offset,y)&0xffffff)==255 for offset in range(-30,31))
+            before=red_width()
+            assert before>=10,('anchor marker unavailable',before)
+            p=W.POINT(x,y);assert s.to_screen(view.hwnd,C.byref(p))
+            s.send(view.hwnd,0x20a,360<<16,packed(p.x,p.y))
+            assert pixel(view.hwnd,x,y)==(255,0,0),'wheel moved the pixel under its anchor'
+            after=red_width()
+            assert after>=before+5,('wheel did not actually zoom',before,after)
+            s.send(view.hwnd,0x111,103,0)
+            s.send(view.hwnd,0x111,104,0)
+            assert red_width()==before,'Fit then 100% did not reset zoom/pan'
+            self.metrics['anchored_zoom_marker_width']={'before':before,'after':after}
+        finally:view.close()
+
     def j12(self):
         result=subprocess.run([sys.executable,str(ROOT/'tools/check_portable.py'),str(self.exe)],capture_output=True,text=True)
         assert result.returncode==0 and 'PORTABLE_DEPENDENCIES_PASS' in result.stdout
@@ -436,12 +611,14 @@ def main():
     assert 0<options.soak_seconds<=600 and 0<options.actions<=8000 and 0<options.cycles<=100
     assert 3<=options.folder_entries<=50000
     suite=Suite(options)
-    selected=set(options.only.split(',')) if options.only else {f'J{i:02}' for i in range(1,13)}
-    assert selected and selected<={f'J{i:02}' for i in range(1,13)},'Unknown journey ID'
-    for i in range(1,13):
+    selected=set(options.only.split(',')) if options.only else {f'J{i:02}' for i in range(1,19)}
+    assert selected and selected<={f'J{i:02}' for i in range(1,19)},'Unknown journey ID'
+    for i in range(1,19):
         name=f'J{i:02}'
         if name in selected:suite.case(name,getattr(suite,f'j{i:02}'))
     print('REPORT',suite.output/'report.json',flush=True)
+    assert len(suite.results)==len(selected)
+    assert all(hashlib.sha256(p.read_bytes()).hexdigest()==digest for p,digest in suite.original_hashes.items())
     assert not any(r['verdict']!='PASS' for r in suite.results),'Journey failures are recorded in the report'
     print('FOTO_STRESS_PASS',flush=True)
 
