@@ -340,3 +340,104 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod bounded_size_contract_tests {
+    use super::bounded_size;
+
+    // Independent fixed contract: do not import production constants or reproduce its float formula.
+    const CONTRACT_MAX_EDGE: u32 = 8_192;
+    const CONTRACT_MAX_PIXELS: u64 = 32_000_000;
+    const BOUNDARY: [u32; 9] = [1, 8_191, 8_192, 8_193, 5_656, 5_657, 3_906, 3_907, u32::MAX];
+
+    fn next_nonzero(state: &mut u64) -> u32 {
+        *state = state
+            .wrapping_mul(6_364_136_223_846_793_005)
+            .wrapping_add(1);
+        ((*state >> 32) as u32).max(1)
+    }
+
+    fn check_pair(width: u32, height: u32) {
+        let result = bounded_size(width, height).expect("E_POSITIVE_INPUT_MUST_RETURN_SIZE");
+        assert!(result.0 > 0 && result.1 > 0, "E_OUTPUT_MUST_STAY_POSITIVE");
+        assert!(
+            result.0 <= width && result.1 <= height,
+            "E_OUTPUT_MUST_NOT_ENLARGE"
+        );
+        assert!(
+            result.0 <= CONTRACT_MAX_EDGE && result.1 <= CONTRACT_MAX_EDGE,
+            "E_OUTPUT_EDGE_CONTRACT"
+        );
+        assert!(
+            result.0 as u64 * result.1 as u64 <= CONTRACT_MAX_PIXELS,
+            "E_OUTPUT_PIXEL_CONTRACT"
+        );
+        assert_eq!(
+            bounded_size(height, width),
+            Some((result.1, result.0)),
+            "E_SYMMETRY_CONTRACT"
+        );
+        if width <= CONTRACT_MAX_EDGE
+            && height <= CONTRACT_MAX_EDGE
+            && width as u64 * height as u64 <= CONTRACT_MAX_PIXELS
+        {
+            assert_eq!(result, (width, height), "E_FITTING_IMAGE_MUST_BE_PRESERVED");
+        }
+    }
+
+    #[test]
+    fn bounded_size_fixed_integer_contract_and_boundaries() {
+        assert_eq!(bounded_size(0, 0), None, "E_ZERO_DIMENSIONS_MUST_REJECT");
+        assert_eq!(bounded_size(0, 1), None, "E_ZERO_WIDTH_MUST_REJECT");
+        assert_eq!(bounded_size(1, 0), None, "E_ZERO_HEIGHT_MUST_REJECT");
+        assert_eq!(bounded_size(8_191, 1), Some((8_191, 1)), "E_EDGE_8191");
+        assert_eq!(bounded_size(8_192, 1), Some((8_192, 1)), "E_EDGE_8192");
+        assert_eq!(
+            bounded_size(8_193, 1),
+            Some((8_192, 1)),
+            "E_EDGE_8193_MUST_SCALE"
+        );
+        assert_eq!(
+            bounded_size(5_656, 5_656),
+            Some((5_656, 5_656)),
+            "E_PIXEL_CAP_5656_FITS"
+        );
+        assert_eq!(
+            bounded_size(5_657, 5_657),
+            Some((5_656, 5_656)),
+            "E_PIXEL_CAP_5657_MUST_SCALE"
+        );
+        assert_eq!(
+            bounded_size(u32::MAX, 1),
+            Some((8_192, 1)),
+            "E_SKINNY_U32_MAX"
+        );
+        assert_eq!(
+            bounded_size(1, u32::MAX),
+            Some((1, 8_192)),
+            "E_SKINNY_SYMMETRY"
+        );
+        check_pair(8_000, 4_000);
+        check_pair(8_000, 4_001);
+        for width in BOUNDARY {
+            for height in BOUNDARY {
+                check_pair(width, height);
+            }
+        }
+
+        let mut state = 0x9e37_79b9_7f4a_7c15;
+        for i in 0usize..50_000 {
+            let width = if i % 11 < BOUNDARY.len() {
+                BOUNDARY[i % BOUNDARY.len()]
+            } else {
+                next_nonzero(&mut state)
+            };
+            let height = if i % 13 < BOUNDARY.len() {
+                BOUNDARY[(i * 7 + 3) % BOUNDARY.len()]
+            } else {
+                next_nonzero(&mut state)
+            };
+            check_pair(width, height);
+        }
+    }
+}
