@@ -102,6 +102,12 @@ def stage_probe(template, source):
     return template.replace(marker, replacement, 1)
 
 
+def depfile_has_source(text, source):
+    # Pinned rustc emits an empty rule for each source, escaping only spaces.
+    return source.as_posix() in {line[:-1].replace(r"\ ", " ").replace("\\", "/")
+                                 for line in text.splitlines() if line.endswith(":")}
+
+
 def git(*args):
     return subprocess.check_output(["git", "-c", "core.excludesFile=", *args], cwd=ROOT, text=True).strip()
 
@@ -196,8 +202,8 @@ def main():
         exe = OUT / "probe.exe"
         shutil.copy2(executables[0], exe)
         depfile = executables[0].with_suffix(".d")
-        dependencies = depfile.read_text(encoding="utf-8").replace("\\", "/")
-        s.require((ROOT / "src/decode.rs").as_posix() in dependencies, "baseline source missing from Cargo depfile")
+        dependencies = depfile.read_text(encoding="utf-8")
+        s.require(depfile_has_source(dependencies, ROOT / "src/decode.rs"), "baseline source missing from Cargo depfile")
         shutil.copy2(depfile, OUT / "probe.d")
         report["baseline_build"] = {"exe_sha256": s.digest(exe), "depfile_sha256": s.digest(OUT / "probe.d"),
                                     "staged_probe_sha256": s.digest(OUT / "staged-probe.rs"),

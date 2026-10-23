@@ -56,6 +56,18 @@ class PortableWiringTests(unittest.TestCase):
             offset = (y * 64 + x) * 4
             self.assertEqual(pixels[offset:offset + 4], expected)
 
+    def test_depfile_source_rule_unescapes_spaces_and_requires_exact_path(self):
+        for name in ["checkout", "Jane Doe", "Jane Doe #$", "folder/ leading space", "caf\u00e9/\U0001f9ea"]:
+            source = Path("C:/") / name / "src/decode.rs"
+            for spelling in (source.as_posix(), source.as_posix().replace("/", "\\")):
+                escaped = spelling.replace(" ", r"\ ")
+                text = "probe.exe: " + escaped + "\r\n\r\n" + escaped + ":\r\n"
+                with self.subTest(name=name, spelling=spelling):
+                    self.assertTrue(runner.depfile_has_source(text, source))
+                    for near_match in (escaped + ".bak:", "prefix" + escaped + ":",
+                                       "probe.exe: " + escaped, "# " + escaped + ":"):
+                        self.assertFalse(runner.depfile_has_source(near_match, source))
+
     def test_build_timeout_keeps_primary_and_records_cleanup_error(self):
         primary = subprocess.TimeoutExpired(["simulated-build"], 1200)
 
