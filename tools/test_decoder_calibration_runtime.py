@@ -182,7 +182,8 @@ class SimulatedWorkerTests(unittest.TestCase):
             exe.write_bytes(b"not executed")
             image.write_bytes(b"not decoded")
             child = Child(b"1234567")
-            with mock.patch.object(worker.subprocess, "Popen", return_value=child):
+            with mock.patch.object(worker.subprocess, "Popen", return_value=child), \
+                 mock.patch.object(worker.subprocess, "CREATE_NO_WINDOW", 0, create=True):
                 with self.assertRaisesRegex(AssertionError, "pixel payload ended early") as caught:
                     worker.sample(exe, str(image), root / "result")
             report = json.loads((root / "result/report.json").read_text())
