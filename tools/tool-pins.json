@@ -1,0 +1,30 @@
+{
+  "actionlint": {
+    "windows": {
+      "version": "1.7.12",
+      "url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_windows_amd64.zip",
+      "sha256": "6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9",
+      "binary": "actionlint.exe"
+    },
+    "linux": {
+      "version": "1.7.12",
+      "url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz",
+      "sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+      "binary": "actionlint"
+    }
+  },
+  "cargo-deny": {
+    "windows": {
+      "version": "0.20.2",
+      "url": "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-pc-windows-msvc.tar.gz",
+      "sha256": "975a22143262fd27476d19ee00c7af67978426e40e1dee94eed6bbade1cf87dc",
+      "binary": "cargo-deny.exe"
+    },
+    "linux": {
+      "version": "0.20.2",
+      "url": "https://github.com/EmbarkStudios/cargo-deny/releases/download/0.20.2/cargo-deny-0.20.2-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "9f12ed4c49936e09b48bf862b595cde2fe64fcbd9d74dfacac6131ca824c8d5f",
+      "binary": "cargo-deny"
+    }
+  }
+}

@@ -1,9 +1,13 @@
 [package]
 name = "foto"
-version = "1.0.2"
+version = "1.0.5"
 edition = "2024"
 rust-version = "1.85"
 description = "A small, native Windows photo viewer"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/zznabil/foto-rs"
+readme = "README.md"
+publish = false
 
 [dependencies]
 windows = { version = "0.62.2", features = [

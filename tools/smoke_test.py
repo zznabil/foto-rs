@@ -1,6 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Exercise the real Windows executable and write measured timings. Uses only Python's standard library."""
 import argparse
-import csv
+from timing_log import rows
 from contextlib import contextmanager
 import ctypes as C
 from ctypes import wintypes as W
@@ -83,14 +84,6 @@ def windows(pid, window_class):
         return True
     enum_windows(visit, 0)
     return result
-
-
-def rows(path):
-    try:
-        with path.open(newline="", encoding="utf-8") as stream:
-            return list(csv.DictReader(stream))
-    except (OSError, UnicodeError):
-        return []
 
 
 def events(path, name):

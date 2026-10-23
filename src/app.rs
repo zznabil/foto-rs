@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 use crate::{
     decode::Image,
     graphics::{Renderer, STATUS, TOOLBAR},
@@ -54,6 +55,28 @@ const BUTTONS: &[(u16, &str, i32)] = &[
     (FULLSCREEN, "Full screen", 100),
     (HELP, "Help", 60),
 ];
+
+fn toolbar_geometry(width: f32, dpi: f32) -> (f32, [RECT; 8]) {
+    let left = 14.0 * dpi;
+    let mut x = left;
+    let mut y = 10.0 * dpi;
+    let mut positions = [RECT::default(); 8];
+    for (index, &(id, _, width_dip)) in BUTTONS.iter().enumerate() {
+        let button_width = width_dip as f32 * dpi;
+        if x > left && x + button_width > width - left {
+            x = left;
+            y += 40.0 * dpi;
+        }
+        positions[index] = RECT {
+            left: x.round() as i32,
+            top: y.round() as i32,
+            right: (x + button_width).round() as i32,
+            bottom: (y + 32.0 * dpi).round() as i32,
+        };
+        x += button_width + if id == OPEN || id == NEXT { 16.0 } else { 4.0 } * dpi;
+    }
+    ((y + 42.0 * dpi).max(TOOLBAR * dpi), positions)
+}
 
 const HELP_TEXT: PCWSTR = w!(
     "Open a photo or drop it onto the window.\n\nCtrl+O: open\nLeft / Right or Page Up / Page Down: previous / next\nHome / End: first / last\nMouse wheel or + / -: zoom\nDrag: pan\n0: fit to window\n1: actual pixels\nR: rotate clockwise\nF11 or F: full screen\nDouble-click: toggle full screen\nEscape: leave full screen, or close\nTab / Shift+Tab: focus toolbar buttons\n\nFoto never edits your photos. GIF and TIFF display their first frame.\n\nOptional performance log:\nfoto.exe [photo] --timings path.csv"
@@ -200,7 +223,7 @@ impl App {
         let top = if self.fullscreen.is_some() {
             0.0
         } else {
-            TOOLBAR * self.dpi
+            toolbar_geometry(b.right as f32, self.dpi).0
         };
         let bottom = if self.fullscreen.is_some() {
             b.bottom as f32
@@ -350,9 +373,9 @@ impl App {
     }
 
     fn layout(&mut self) {
+        let (_, positions) = toolbar_geometry(self.bounds().right as f32, self.dpi);
         unsafe {
-            let mut x = 14.0 * self.dpi;
-            for (&(_, button), &(id, _, width)) in self.buttons.iter().zip(BUTTONS) {
+            for (&(_, button), r) in self.buttons.iter().zip(positions) {
                 let _ = ShowWindow(
                     button,
                     if self.fullscreen.is_some() {
@@ -364,13 +387,12 @@ impl App {
                 let _ = SetWindowPos(
                     button,
                     None,
-                    x.round() as i32,
-                    (10.0 * self.dpi).round() as i32,
-                    (width as f32 * self.dpi).round() as i32,
-                    (32.0 * self.dpi).round() as i32,
+                    r.left,
+                    r.top,
+                    r.right - r.left,
+                    r.bottom - r.top,
                     SWP_NOZORDER | SWP_NOACTIVATE,
                 );
-                x += (width as f32 + if id == OPEN || id == NEXT { 16.0 } else { 4.0 }) * self.dpi;
             }
         }
         self.clamp_pan();
@@ -591,6 +613,10 @@ impl App {
             let dc = BeginPaint(self.hwnd, &mut paint);
             let b = self.bounds();
             let status = self.status();
+            let toolbar = self
+                .fullscreen
+                .is_none()
+                .then(|| toolbar_geometry(b.right as f32, self.dpi).0);
             if b.right <= 0 || b.bottom <= 0 {
                 let _ = EndPaint(self.hwnd, &paint);
                 return;
@@ -605,7 +631,7 @@ impl App {
                     &self.view,
                     &status,
                     self.error.as_deref(),
-                    self.fullscreen.is_some(),
+                    toolbar,
                     self.dpi,
                 )
             })();
@@ -826,7 +852,7 @@ unsafe extern "system" fn window_proc(hwnd: HWND, message: u32, wp: WPARAM, lp: 
             WM_GETMINMAXINFO if app.fullscreen.is_none() => {
                 let info = &mut *(lp.0 as *mut MINMAXINFO);
                 info.ptMinTrackSize = POINT {
-                    x: (760.0 * app.dpi) as i32,
+                    x: (360.0 * app.dpi) as i32,
                     y: (320.0 * app.dpi) as i32,
                 };
                 return LRESULT(0);
@@ -1058,5 +1084,34 @@ unsafe fn run_window(
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn toolbar_wraps_without_overlap_or_clipping_on_narrow_high_dpi_windows() {
+        for dpi in [1.0, 1.25, 1.5, 2.0] {
+            for width_dip in [340.0, 360.0, 512.0, 760.0, 1100.0] {
+                let width = width_dip * dpi;
+                let (height, buttons) = toolbar_geometry(width, dpi);
+                for (index, button) in buttons.iter().enumerate() {
+                    assert!(button.left >= 0 && button.right <= width.round() as i32);
+                    assert!(button.top >= 0 && button.bottom <= height.round() as i32);
+                    for other in &buttons[index + 1..] {
+                        assert!(
+                            button.right <= other.left
+                                || other.right <= button.left
+                                || button.bottom <= other.top
+                                || other.bottom <= button.top
+                        );
+                    }
+                }
+            }
+        }
+        assert_eq!(toolbar_geometry(1100.0, 1.0).0, TOOLBAR);
+        assert!(toolbar_geometry(1024.0, 2.0).0 > TOOLBAR * 2.0);
     }
 }

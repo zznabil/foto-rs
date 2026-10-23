@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Native UI Automation oracle; avoids the host's failing managed proxy registration.
 use windows::{
     Win32::{

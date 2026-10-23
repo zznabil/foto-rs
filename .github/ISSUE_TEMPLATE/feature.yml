@@ -1,0 +1,16 @@
+name: Feature request
+description: Suggest a focused improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need
+      description: Describe the viewing task and why the current controls are insufficient.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Proposed behavior and trade-offs
+      description: Consider startup, memory use, native design and read-only photo handling.

@@ -1,0 +1,1350 @@
+{
+  "label": "final-1.0.2",
+  "hashes": {
+    "control": "39fe8b5f08d7218d7a33eaafb30efe7b5d300bea369fc3828e1bd3ac689d48b5",
+    "candidate": "8bdced0523cdd5d9dd83fb8cca72f524bf1dcc17000ba686600685ce2e5b0fce"
+  },
+  "pairs": 8,
+  "empty_window_included": true,
+  "samples": [
+    {
+      "pair": 0,
+      "kind": "control",
+      "empty_first_ms": 131.469,
+      "empty_rss": 32382976,
+      "empty_private": 9437184,
+      "empty_cpu_ms": 125.0,
+      "first_ms": 187.234,
+      "external_ms": 233.39560000022175,
+      "nav_median_ms": 29.594,
+      "nav_p95_ms": 37.247,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 27.532,
+          "cached": true
+        },
+        {
+          "ms": 28.806,
+          "cached": true
+        },
+        {
+          "ms": 27.937,
+          "cached": true
+        },
+        {
+          "ms": 37.247,
+          "cached": true
+        },
+        {
+          "ms": 30.382,
+          "cached": true
+        },
+        {
+          "ms": 34.525,
+          "cached": true
+        },
+        {
+          "ms": 27.428,
+          "cached": true
+        },
+        {
+          "ms": 35.73,
+          "cached": true
+        },
+        {
+          "ms": 28.115,
+          "cached": true
+        },
+        {
+          "ms": 35.573,
+          "cached": true
+        },
+        {
+          "ms": 26.938,
+          "cached": true
+        },
+        {
+          "ms": 34.621,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2031.25,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321531904,
+        "private": 298414080,
+        "peak_rss": 324775936,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321662976,
+        "private": 298577920,
+        "peak_rss": 475918336,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 0,
+      "kind": "candidate",
+      "empty_first_ms": 129.239,
+      "empty_rss": 32198656,
+      "empty_private": 8507392,
+      "empty_cpu_ms": 109.375,
+      "first_ms": 175.007,
+      "external_ms": 225.06419999990612,
+      "nav_median_ms": 29.798000000000002,
+      "nav_p95_ms": 36.064,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.158,
+          "cached": true
+        },
+        {
+          "ms": 30.762,
+          "cached": true
+        },
+        {
+          "ms": 29.059,
+          "cached": true
+        },
+        {
+          "ms": 33.619,
+          "cached": true
+        },
+        {
+          "ms": 29.109,
+          "cached": true
+        },
+        {
+          "ms": 36.064,
+          "cached": true
+        },
+        {
+          "ms": 28.134,
+          "cached": true
+        },
+        {
+          "ms": 33.548,
+          "cached": true
+        },
+        {
+          "ms": 28.845,
+          "cached": true
+        },
+        {
+          "ms": 30.438,
+          "cached": true
+        },
+        {
+          "ms": 29.146,
+          "cached": true
+        },
+        {
+          "ms": 33.852,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1000.0,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321527808,
+        "private": 298369024,
+        "peak_rss": 324743168,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321683456,
+        "private": 298528768,
+        "peak_rss": 417677312,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 1,
+      "kind": "candidate",
+      "empty_first_ms": 131.189,
+      "empty_rss": 32329728,
+      "empty_private": 9469952,
+      "empty_cpu_ms": 140.625,
+      "first_ms": 180.403,
+      "external_ms": 243.0753000007826,
+      "nav_median_ms": 30.0765,
+      "nav_p95_ms": 33.393,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.496,
+          "cached": true
+        },
+        {
+          "ms": 32.655,
+          "cached": true
+        },
+        {
+          "ms": 28.503,
+          "cached": true
+        },
+        {
+          "ms": 33.393,
+          "cached": true
+        },
+        {
+          "ms": 28.164,
+          "cached": true
+        },
+        {
+          "ms": 30.843,
+          "cached": true
+        },
+        {
+          "ms": 27.396,
+          "cached": true
+        },
+        {
+          "ms": 30.657,
+          "cached": true
+        },
+        {
+          "ms": 27.771,
+          "cached": true
+        },
+        {
+          "ms": 32.192,
+          "cached": true
+        },
+        {
+          "ms": 26.836,
+          "cached": true
+        },
+        {
+          "ms": 31.367,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 937.5,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321888256,
+        "private": 298827776,
+        "peak_rss": 325103616,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321998848,
+        "private": 298905600,
+        "peak_rss": 417988608,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 1,
+      "kind": "control",
+      "empty_first_ms": 130.499,
+      "empty_rss": 32321536,
+      "empty_private": 9486336,
+      "empty_cpu_ms": 109.375,
+      "first_ms": 172.119,
+      "external_ms": 235.92759999883128,
+      "nav_median_ms": 28.7,
+      "nav_p95_ms": 36.756,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 28.548,
+          "cached": true
+        },
+        {
+          "ms": 25.603,
+          "cached": true
+        },
+        {
+          "ms": 30.214,
+          "cached": true
+        },
+        {
+          "ms": 36.756,
+          "cached": true
+        },
+        {
+          "ms": 27.863,
+          "cached": true
+        },
+        {
+          "ms": 33.816,
+          "cached": true
+        },
+        {
+          "ms": 25.503,
+          "cached": true
+        },
+        {
+          "ms": 35.308,
+          "cached": true
+        },
+        {
+          "ms": 26.372,
+          "cached": true
+        },
+        {
+          "ms": 28.512,
+          "cached": true
+        },
+        {
+          "ms": 28.852,
+          "cached": true
+        },
+        {
+          "ms": 35.864,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2046.875,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321429504,
+        "private": 297476096,
+        "peak_rss": 324657152,
+        "handles": 259,
+        "gdi": 15,
+        "user": 21
+      },
+      "final": {
+        "rss": 321540096,
+        "private": 297558016,
+        "peak_rss": 477581312,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 2,
+      "kind": "control",
+      "empty_first_ms": 121.22,
+      "empty_rss": 32038912,
+      "empty_private": 7311360,
+      "empty_cpu_ms": 109.375,
+      "first_ms": 177.73,
+      "external_ms": 238.2320999968215,
+      "nav_median_ms": 29.311,
+      "nav_p95_ms": 35.886,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 28.442,
+          "cached": true
+        },
+        {
+          "ms": 35.886,
+          "cached": true
+        },
+        {
+          "ms": 28.226,
+          "cached": true
+        },
+        {
+          "ms": 33.594,
+          "cached": true
+        },
+        {
+          "ms": 26.696,
+          "cached": true
+        },
+        {
+          "ms": 34.441,
+          "cached": true
+        },
+        {
+          "ms": 27.974,
+          "cached": true
+        },
+        {
+          "ms": 33.743,
+          "cached": true
+        },
+        {
+          "ms": 26.989,
+          "cached": true
+        },
+        {
+          "ms": 29.084,
+          "cached": true
+        },
+        {
+          "ms": 29.538,
+          "cached": true
+        },
+        {
+          "ms": 30.121,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2125.0,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321568768,
+        "private": 298418176,
+        "peak_rss": 324784128,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321757184,
+        "private": 298569728,
+        "peak_rss": 482426880,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 2,
+      "kind": "candidate",
+      "empty_first_ms": 126.44,
+      "empty_rss": 32227328,
+      "empty_private": 7557120,
+      "empty_cpu_ms": 171.875,
+      "first_ms": 190.669,
+      "external_ms": 251.00139999995008,
+      "nav_median_ms": 30.896,
+      "nav_p95_ms": 35.655,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.157,
+          "cached": true
+        },
+        {
+          "ms": 34.208,
+          "cached": true
+        },
+        {
+          "ms": 29.043,
+          "cached": true
+        },
+        {
+          "ms": 35.655,
+          "cached": true
+        },
+        {
+          "ms": 28.582,
+          "cached": true
+        },
+        {
+          "ms": 30.631,
+          "cached": true
+        },
+        {
+          "ms": 31.161,
+          "cached": true
+        },
+        {
+          "ms": 31.663,
+          "cached": true
+        },
+        {
+          "ms": 29.413,
+          "cached": true
+        },
+        {
+          "ms": 31.445,
+          "cached": true
+        },
+        {
+          "ms": 26.774,
+          "cached": true
+        },
+        {
+          "ms": 32.815,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1015.625,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321810432,
+        "private": 298676224,
+        "peak_rss": 325038080,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321888256,
+        "private": 298741760,
+        "peak_rss": 417873920,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 3,
+      "kind": "candidate",
+      "empty_first_ms": 122.703,
+      "empty_rss": 32325632,
+      "empty_private": 9482240,
+      "empty_cpu_ms": 93.75,
+      "first_ms": 183.976,
+      "external_ms": 246.55539999366738,
+      "nav_median_ms": 31.3375,
+      "nav_p95_ms": 32.613,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 27.944,
+          "cached": true
+        },
+        {
+          "ms": 32.305,
+          "cached": true
+        },
+        {
+          "ms": 27.837,
+          "cached": true
+        },
+        {
+          "ms": 32.492,
+          "cached": true
+        },
+        {
+          "ms": 26.666,
+          "cached": true
+        },
+        {
+          "ms": 32.613,
+          "cached": true
+        },
+        {
+          "ms": 27.045,
+          "cached": true
+        },
+        {
+          "ms": 32.511,
+          "cached": true
+        },
+        {
+          "ms": 30.902,
+          "cached": true
+        },
+        {
+          "ms": 32.235,
+          "cached": true
+        },
+        {
+          "ms": 26.205,
+          "cached": true
+        },
+        {
+          "ms": 31.773,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1203.125,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321499136,
+        "private": 297549824,
+        "peak_rss": 324714496,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321658880,
+        "private": 297619456,
+        "peak_rss": 417652736,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 3,
+      "kind": "control",
+      "empty_first_ms": 132.038,
+      "empty_rss": 32292864,
+      "empty_private": 9433088,
+      "empty_cpu_ms": 156.25,
+      "first_ms": 205.932,
+      "external_ms": 265.7019999969634,
+      "nav_median_ms": 31.0775,
+      "nav_p95_ms": 35.181,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.033,
+          "cached": true
+        },
+        {
+          "ms": 28.397,
+          "cached": true
+        },
+        {
+          "ms": 26.894,
+          "cached": true
+        },
+        {
+          "ms": 35.181,
+          "cached": true
+        },
+        {
+          "ms": 29.114,
+          "cached": true
+        },
+        {
+          "ms": 34.164,
+          "cached": true
+        },
+        {
+          "ms": 31.219,
+          "cached": true
+        },
+        {
+          "ms": 34.674,
+          "cached": true
+        },
+        {
+          "ms": 30.936,
+          "cached": true
+        },
+        {
+          "ms": 31.303,
+          "cached": true
+        },
+        {
+          "ms": 25.342,
+          "cached": true
+        },
+        {
+          "ms": 34.65,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2125.0,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321445888,
+        "private": 296562688,
+        "peak_rss": 324661248,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321282048,
+        "private": 296357888,
+        "peak_rss": 486666240,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 4,
+      "kind": "control",
+      "empty_first_ms": 128.444,
+      "empty_rss": 32387072,
+      "empty_private": 9465856,
+      "empty_cpu_ms": 140.625,
+      "first_ms": 169.4,
+      "external_ms": 230.61279999819817,
+      "nav_median_ms": 31.481,
+      "nav_p95_ms": 37.142,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 26.82,
+          "cached": true
+        },
+        {
+          "ms": 32.155,
+          "cached": true
+        },
+        {
+          "ms": 31.591,
+          "cached": true
+        },
+        {
+          "ms": 37.142,
+          "cached": true
+        },
+        {
+          "ms": 26.995,
+          "cached": true
+        },
+        {
+          "ms": 31.371,
+          "cached": true
+        },
+        {
+          "ms": 27.711,
+          "cached": true
+        },
+        {
+          "ms": 36.682,
+          "cached": true
+        },
+        {
+          "ms": 28.754,
+          "cached": true
+        },
+        {
+          "ms": 33.926,
+          "cached": true
+        },
+        {
+          "ms": 26.71,
+          "cached": true
+        },
+        {
+          "ms": 35.053,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2062.5,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321658880,
+        "private": 297754624,
+        "peak_rss": 324911104,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321888256,
+        "private": 297848832,
+        "peak_rss": 477192192,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 4,
+      "kind": "candidate",
+      "empty_first_ms": 141.243,
+      "empty_rss": 32284672,
+      "empty_private": 9441280,
+      "empty_cpu_ms": 203.125,
+      "first_ms": 185.296,
+      "external_ms": 255.70770000194898,
+      "nav_median_ms": 30.241500000000002,
+      "nav_p95_ms": 34.324,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 27.749,
+          "cached": true
+        },
+        {
+          "ms": 32.873,
+          "cached": true
+        },
+        {
+          "ms": 28.619,
+          "cached": true
+        },
+        {
+          "ms": 33.194,
+          "cached": true
+        },
+        {
+          "ms": 28.87,
+          "cached": true
+        },
+        {
+          "ms": 34.324,
+          "cached": true
+        },
+        {
+          "ms": 25.488,
+          "cached": true
+        },
+        {
+          "ms": 33.909,
+          "cached": true
+        },
+        {
+          "ms": 26.786,
+          "cached": true
+        },
+        {
+          "ms": 31.613,
+          "cached": true
+        },
+        {
+          "ms": 28.468,
+          "cached": true
+        },
+        {
+          "ms": 32.011,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1046.875,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321499136,
+        "private": 298369024,
+        "peak_rss": 324739072,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321589248,
+        "private": 298405888,
+        "peak_rss": 417587200,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 5,
+      "kind": "candidate",
+      "empty_first_ms": 132.989,
+      "empty_rss": 32497664,
+      "empty_private": 9670656,
+      "empty_cpu_ms": 125.0,
+      "first_ms": 191.088,
+      "external_ms": 263.48670000152197,
+      "nav_median_ms": 28.768,
+      "nav_p95_ms": 33.933,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.37,
+          "cached": true
+        },
+        {
+          "ms": 31.776,
+          "cached": true
+        },
+        {
+          "ms": 27.051,
+          "cached": true
+        },
+        {
+          "ms": 30.84,
+          "cached": true
+        },
+        {
+          "ms": 26.788,
+          "cached": true
+        },
+        {
+          "ms": 33.933,
+          "cached": true
+        },
+        {
+          "ms": 23.513,
+          "cached": true
+        },
+        {
+          "ms": 29.594,
+          "cached": true
+        },
+        {
+          "ms": 25.455,
+          "cached": true
+        },
+        {
+          "ms": 27.018,
+          "cached": true
+        },
+        {
+          "ms": 28.166,
+          "cached": true
+        },
+        {
+          "ms": 29.741,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1093.75,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321380352,
+        "private": 297332736,
+        "peak_rss": 324595712,
+        "handles": 259,
+        "gdi": 15,
+        "user": 21
+      },
+      "final": {
+        "rss": 321576960,
+        "private": 297553920,
+        "peak_rss": 417574912,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 5,
+      "kind": "control",
+      "empty_first_ms": 121.489,
+      "empty_rss": 32370688,
+      "empty_private": 9519104,
+      "empty_cpu_ms": 140.625,
+      "first_ms": 156.769,
+      "external_ms": 202.41270000406075,
+      "nav_median_ms": 30.515,
+      "nav_p95_ms": 36.515,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 30.481,
+          "cached": true
+        },
+        {
+          "ms": 25.41,
+          "cached": true
+        },
+        {
+          "ms": 30.549,
+          "cached": true
+        },
+        {
+          "ms": 33.551,
+          "cached": true
+        },
+        {
+          "ms": 29.781,
+          "cached": true
+        },
+        {
+          "ms": 35.004,
+          "cached": true
+        },
+        {
+          "ms": 28.263,
+          "cached": true
+        },
+        {
+          "ms": 34.862,
+          "cached": true
+        },
+        {
+          "ms": 26.968,
+          "cached": true
+        },
+        {
+          "ms": 34.869,
+          "cached": true
+        },
+        {
+          "ms": 28.196,
+          "cached": true
+        },
+        {
+          "ms": 36.515,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 2046.875,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321658880,
+        "private": 298504192,
+        "peak_rss": 324882432,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321740800,
+        "private": 298557440,
+        "peak_rss": 477274112,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 6,
+      "kind": "control",
+      "empty_first_ms": 109.982,
+      "empty_rss": 32391168,
+      "empty_private": 9408512,
+      "empty_cpu_ms": 156.25,
+      "first_ms": 191.806,
+      "external_ms": 251.49749999400228,
+      "nav_median_ms": 30.4655,
+      "nav_p95_ms": 34.899,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 26.748,
+          "cached": true
+        },
+        {
+          "ms": 27.323,
+          "cached": true
+        },
+        {
+          "ms": 28.039,
+          "cached": true
+        },
+        {
+          "ms": 34.295,
+          "cached": true
+        },
+        {
+          "ms": 28.875,
+          "cached": true
+        },
+        {
+          "ms": 34.896,
+          "cached": true
+        },
+        {
+          "ms": 32.056,
+          "cached": true
+        },
+        {
+          "ms": 33.146,
+          "cached": true
+        },
+        {
+          "ms": 28.003,
+          "cached": true
+        },
+        {
+          "ms": 32.882,
+          "cached": true
+        },
+        {
+          "ms": 26.373,
+          "cached": true
+        },
+        {
+          "ms": 34.899,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1890.625,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321593344,
+        "private": 298459136,
+        "peak_rss": 324861952,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321724416,
+        "private": 298594304,
+        "peak_rss": 480169984,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 6,
+      "kind": "candidate",
+      "empty_first_ms": 163.273,
+      "empty_rss": 32546816,
+      "empty_private": 9650176,
+      "empty_cpu_ms": 156.25,
+      "first_ms": 214.319,
+      "external_ms": 275.792199994612,
+      "nav_median_ms": 30.9155,
+      "nav_p95_ms": 35.518,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 29.817,
+          "cached": true
+        },
+        {
+          "ms": 32.516,
+          "cached": true
+        },
+        {
+          "ms": 28.414,
+          "cached": true
+        },
+        {
+          "ms": 32.014,
+          "cached": true
+        },
+        {
+          "ms": 29.204,
+          "cached": true
+        },
+        {
+          "ms": 33.002,
+          "cached": true
+        },
+        {
+          "ms": 29.312,
+          "cached": true
+        },
+        {
+          "ms": 32.201,
+          "cached": true
+        },
+        {
+          "ms": 28.479,
+          "cached": true
+        },
+        {
+          "ms": 32.196,
+          "cached": true
+        },
+        {
+          "ms": 29.022,
+          "cached": true
+        },
+        {
+          "ms": 35.518,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 937.5,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321458176,
+        "private": 298303488,
+        "peak_rss": 324673536,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321585152,
+        "private": 298405888,
+        "peak_rss": 417574912,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 7,
+      "kind": "candidate",
+      "empty_first_ms": 118.564,
+      "empty_rss": 32362496,
+      "empty_private": 8601600,
+      "empty_cpu_ms": 62.5,
+      "first_ms": 155.32,
+      "external_ms": 208.2276000001002,
+      "nav_median_ms": 29.8265,
+      "nav_p95_ms": 34.996,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 27.672,
+          "cached": true
+        },
+        {
+          "ms": 34.996,
+          "cached": true
+        },
+        {
+          "ms": 27.538,
+          "cached": true
+        },
+        {
+          "ms": 31.628,
+          "cached": true
+        },
+        {
+          "ms": 26.773,
+          "cached": true
+        },
+        {
+          "ms": 33.758,
+          "cached": true
+        },
+        {
+          "ms": 26.063,
+          "cached": true
+        },
+        {
+          "ms": 30.891,
+          "cached": true
+        },
+        {
+          "ms": 28.762,
+          "cached": true
+        },
+        {
+          "ms": 32.806,
+          "cached": true
+        },
+        {
+          "ms": 26.233,
+          "cached": true
+        },
+        {
+          "ms": 32.119,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1109.375,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321548288,
+        "private": 298409984,
+        "peak_rss": 324763648,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      },
+      "final": {
+        "rss": 321769472,
+        "private": 298631168,
+        "peak_rss": 417763328,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    },
+    {
+      "pair": 7,
+      "kind": "control",
+      "empty_first_ms": 116.564,
+      "empty_rss": 32264192,
+      "empty_private": 7622656,
+      "empty_cpu_ms": 78.125,
+      "first_ms": 196.04,
+      "external_ms": 254.78619999921648,
+      "nav_median_ms": 28.871000000000002,
+      "nav_p95_ms": 35.219,
+      "cache_hits": 12,
+      "navigation": [
+        {
+          "ms": 28.332,
+          "cached": true
+        },
+        {
+          "ms": 25.849,
+          "cached": true
+        },
+        {
+          "ms": 33.453,
+          "cached": true
+        },
+        {
+          "ms": 33.385,
+          "cached": true
+        },
+        {
+          "ms": 28.01,
+          "cached": true
+        },
+        {
+          "ms": 23.5,
+          "cached": true
+        },
+        {
+          "ms": 26.136,
+          "cached": true
+        },
+        {
+          "ms": 32.651,
+          "cached": true
+        },
+        {
+          "ms": 29.41,
+          "cached": true
+        },
+        {
+          "ms": 32.696,
+          "cached": true
+        },
+        {
+          "ms": 28.018,
+          "cached": true
+        },
+        {
+          "ms": 35.219,
+          "cached": true
+        }
+      ],
+      "cpu_ms": 1890.625,
+      "idle_cpu_ms_300ms": 0.0,
+      "baseline": {
+        "rss": 321613824,
+        "private": 298500096,
+        "peak_rss": 324829184,
+        "handles": 259,
+        "gdi": 15,
+        "user": 21
+      },
+      "final": {
+        "rss": 321753088,
+        "private": 298602496,
+        "peak_rss": 475279360,
+        "handles": 259,
+        "gdi": 14,
+        "user": 21
+      }
+    }
+  ],
+  "method": "Serial alternating AB/BA; warm OS cache; 24 MP JPEG; twelve 3-photo moves with 200ms settle; final pixels checked",
+  "limits": "Single Windows 11 host; not cold-start or human UAT",
+  "summary": {
+    "control": {
+      "first_ms": 182.482,
+      "external_ms": 237.08,
+      "nav_median_ms": 30.03,
+      "nav_p95_ms": 36.201,
+      "cache_hits": 12.0,
+      "cpu_ms": 2046.875,
+      "idle_cpu_ms_300ms": 0.0,
+      "rss": 321732608.0,
+      "private": 298563584.0,
+      "peak_rss": 477427712.0,
+      "handles": 259.0,
+      "gdi": 14.0,
+      "user": 21.0,
+      "empty_first_ms": 124.9665,
+      "empty_rss": 32346112.0,
+      "empty_private": 9435136.0,
+      "empty_cpu_ms": 132.8125
+    },
+    "candidate": {
+      "first_ms": 184.636,
+      "external_ms": 248.778,
+      "nav_median_ms": 30.159,
+      "nav_p95_ms": 34.66,
+      "cache_hits": 12.0,
+      "cpu_ms": 1031.25,
+      "idle_cpu_ms_300ms": 0.0,
+      "rss": 321671168.0,
+      "private": 298467328.0,
+      "peak_rss": 417665024.0,
+      "handles": 259.0,
+      "gdi": 14.0,
+      "user": 21.0,
+      "empty_first_ms": 130.214,
+      "empty_rss": 32327680.0,
+      "empty_private": 9455616.0,
+      "empty_cpu_ms": 132.8125
+    }
+  },
+  "verdict": "PASS"
+}

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Paired warm-cache native-window workloads; raw samples, not a speedup verdict."""
 import argparse
 import hashlib

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Serial paired native-viewer benchmark. Synthetic inputs; no cache flushing or policy changes."""
 import argparse
 import hashlib

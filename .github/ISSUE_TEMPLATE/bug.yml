@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible viewer problem
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Foto version
+      description: Include release version and Windows version/build.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps, expected result and actual result
+      description: Use a synthetic or shareable sample. Do not attach private photos or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Image format/dimensions, error text and timing log if available.

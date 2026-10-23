@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
 //! Image coordinates are physical pixels. No timer or animation is needed.
 
 #[derive(Clone, Copy, Debug, Default)]
