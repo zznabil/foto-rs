@@ -169,6 +169,129 @@ class JourneyReportingTests(unittest.TestCase):
         self.assertIn("cleanup: AssertionError:", result["error"])
         self.assertEqual(self.suite.sessions, [])
 
+    def test_nested_body_error_records_context_in_traceback_order(self):
+        def body():
+            try:
+                raise TimeoutError("picker acceptance timed out")
+            finally:
+                raise AssertionError("viewer exited during cleanup")
+
+        result = self.run_case("nested-body", body)
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["body_error"].get("exception_chain"), [
+            {"relation": "context", "type": "TimeoutError",
+             "message": "picker acceptance timed out"},
+        ], "NESTED_FINALLY_MUST_RETAIN_ORIGINAL_ERROR")
+
+    def test_explicit_cause_precedes_context(self):
+        explicit_cause = OSError("explicit root")
+
+        def body():
+            try:
+                raise ValueError("implicit context")
+            except ValueError:
+                raise RuntimeError("wrapped failure") from explicit_cause
+
+        result = self.run_case("explicit-cause", body)
+        self.assertEqual(result["body_error"].get("exception_chain"), [
+            {"relation": "cause", "type": "OSError", "message": "explicit root"},
+        ], "EXPLICIT_CAUSE_MUST_BE_SERIALIZED")
+
+    def test_raise_from_none_suppresses_context_record(self):
+        def body():
+            try:
+                raise OSError("hidden context")
+            except OSError:
+                raise LookupError("suppressed failure") from None
+
+        result = self.run_case("suppressed-context", body)
+        self.assertNotIn("exception_chain", result["body_error"])
+
+    def test_cleanup_chain_is_serialized_without_relabeling_source(self):
+        session, _ = self.add_session()
+
+        def close_with_chain():
+            try:
+                raise OSError("cleanup root")
+            except OSError as cause:
+                raise AssertionError("cleanup wrapper") from cause
+
+        session.close = close_with_chain
+        result = self.run_case("cleanup-chain", lambda: None)
+        self.assertEqual(result["cleanup_errors"][0].get("exception_chain"), [
+            {"relation": "cause", "type": "OSError", "message": "cleanup root"},
+        ], "CLEANUP_CHAIN_MUST_BE_STRUCTURED")
+
+    def test_exception_chain_cycle_is_bounded(self):
+        first = ValueError("cycle first")
+        second = RuntimeError("cycle second")
+        first.__cause__ = second
+        second.__cause__ = first
+        result = self.run_case("cycle", lambda: (_ for _ in ()).throw(first))
+        self.assertEqual(result["body_error"].get("exception_chain"), [
+            {"relation": "cause", "type": "RuntimeError", "message": "cycle second"},
+        ], "EXCEPTION_CHAIN_CYCLE_MUST_TERMINATE")
+
+    def test_bad_linked_message_preserves_outer_body_report(self):
+        formatter_errors = (RuntimeError, KeyboardInterrupt, SystemExit)
+
+        def broken_type(formatter_error):
+            class BrokenInner(Exception):
+                def __str__(self):
+                    raise formatter_error("inner str failed")
+            return BrokenInner
+
+        linked = [broken_type(formatter_error)() for formatter_error in formatter_errors]
+        linked[0].__cause__ = linked[1]
+        linked[1].__cause__ = linked[2]
+
+        def body():
+            raise ValueError("outer remains actionable") from linked[0]
+
+        result = self.run_case("bad-linked-body", body)
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["body_error"]["type"], "ValueError")
+        self.assertEqual(result["body_error"]["message"], "outer remains actionable")
+        self.assertEqual(result["body_error"].get("exception_chain"), [
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+        ], "LINKED_MESSAGE_FAILURE_MUST_PRESERVE_OUTER_REPORT")
+        self.assertEqual(len(self.saved_reports), 1)
+
+    def test_bad_linked_cleanup_message_preserves_later_cleanup(self):
+        formatter_errors = (RuntimeError, KeyboardInterrupt, SystemExit)
+
+        def broken_type(formatter_error):
+            class BrokenInner(Exception):
+                def __str__(self):
+                    raise formatter_error("cleanup inner str failed")
+            return BrokenInner
+
+        linked = [broken_type(formatter_error)() for formatter_error in formatter_errors]
+        linked[0].__cause__ = linked[1]
+        linked[1].__cause__ = linked[2]
+
+        bad_session, _ = self.add_session(name="bad-linked.csv")
+        later_session, later_process = self.add_session(name="later.csv")
+        called = []
+
+        def close_bad():
+            called.append("bad")
+            raise AssertionError("cleanup remains actionable") from linked[0]
+
+        bad_session.close = close_bad
+        result = self.run_case("bad-linked-cleanup", lambda: None)
+        self.assertEqual(called, ["bad"])
+        self.assertEqual(later_process.wait_calls, [4])
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["cleanup_errors"][0].get("exception_chain"), [
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+            {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
+        ], "LINKED_CLEANUP_MESSAGE_FAILURE_MUST_PRESERVE_REPORT")
+        self.assertEqual(len(self.saved_reports), 1)
+
     def test_all_cleanup_attempts_run_after_one_failure(self):
         sessions = [self.add_session(exit_code=code, name=f"session-{code}.csv")
                     for code in (7, 0, 9)]
