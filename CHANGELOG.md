@@ -5,6 +5,7 @@
 - Repair extreme decode latency for oversized EXIF-oriented images by materializing bounded scaled rows before rotation/mirroring. A synthetic image that did not display after 90 seconds now draws in a measured 451 ms median on the test host.
 - Expand native acceptance coverage from twelve to eighteen journeys, including large/small EXIF pixels, picker acceptance, Space/Enter, anchored zoom, boundaries and busy shutdown.
 - Add paired multi-workload measurements with raw observations, p95/p99 and resource counters. Reject and revert three subsequent no-gain candidates. Ordinary browsing is not claimed faster; see RECURSIVE.md for regression guards and limitations.
+- Use Defender's native direct security-intelligence update command on hosted verification runners. Update failures and disabled protection still block validation.
 
 ## 1.0.5
 
