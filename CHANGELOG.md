@@ -10,6 +10,7 @@
 - Retain explicit causes and unsuppressed exception context in structured journey failure reports, including errors raised during cleanup.
 - Use Defender's native direct security-intelligence update command on hosted verification runners. Update failures and disabled protection still block validation.
 - Observe hosted Defender activation for up to 30 seconds after its single update. Require both protection flags and report their final states on failure.
+- Update all six CI, calibration and release setup-python steps to the pinned v7.1.0 action. Keep Python 3.14.7 and the viewer's runtime dependencies unchanged.
 
 ## 1.0.5
 
