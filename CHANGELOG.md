@@ -9,6 +9,7 @@
 - Preserve the original journey failure when inline viewer cleanup also fails. Report cleanup failures separately and retain their exit codes.
 - Retain explicit causes and unsuppressed exception context in structured journey failure reports, including errors raised during cleanup.
 - Use Defender's native direct security-intelligence update command on hosted verification runners. Update failures and disabled protection still block validation.
+- Observe hosted Defender activation for up to 30 seconds after its single update. Require both protection flags and report their final states on failure.
 
 ## 1.0.5
 
