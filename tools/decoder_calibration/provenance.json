@@ -282,8 +282,10 @@
     },
     "current_module_sha256": {
       "tools/decoder_calibration/guards.py": "c4b02c0e7cdd7b5b1b17c4746b81553fe8ecad3ea00d86545daf2d6493ad85c6",
-      "tools/calibrate_decoder.py": "c8f03091468dc76d9bb5e25564854f125b8f9bedfb8dee90daef8a2e5f65de05"
+      "tools/calibrate_decoder.py": "c8f03091468dc76d9bb5e25564854f125b8f9bedfb8dee90daef8a2e5f65de05",
+      "tools/decoder_calibration/measure.py": "917d72de77aea33f83402bc18703323427227ea9d4b6fbffb1568a622eef3547"
     },
-    "evidence_limit": "Source comparison only, not a native-control verdict. Fresh local and hosted native cohorts are required."
+    "evidence_limit": "Source comparison only, not a native-control verdict. Fresh local and hosted native cohorts are required.",
+    "monitor_failure_transport": "Retain the first monitor exception and its traceback instead of replacing it with an assertion over repr strings. Preserve serialised sample_errors and add sample_error_tracebacks. Every counter failure still rejects the cohort; no workload, numeric predicate or timeout is changed."
   }
 }

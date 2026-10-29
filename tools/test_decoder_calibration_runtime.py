@@ -139,7 +139,8 @@ class SimulatedWorkerTests(unittest.TestCase):
             def is_alive(self):
                 return False
 
-        native = types.SimpleNamespace(snapshot=mock.Mock(side_effect=OSError("simulated counter failure")))
+        counter_error = OSError(5, "simulated counter failure")
+        native = types.SimpleNamespace(snapshot=mock.Mock(side_effect=counter_error))
         path = Path(__file__).parent / "decoder_calibration/measure.py"
         spec = importlib.util.spec_from_file_location("decoder_calibration._simulated_measure", path)
         measure = importlib.util.module_from_spec(spec)
@@ -152,8 +153,10 @@ class SimulatedWorkerTests(unittest.TestCase):
              mock.patch.object(measure.threading, "Thread", ImmediateThread):
             before = dict(os.environ)
             output = Path(directory) / "result"
-            with self.assertRaisesRegex(AssertionError, "simulated counter failure"):
+            with self.assertRaises(OSError) as caught:
                 measure.sample(None, None, output, 512)
+            self.assertIs(caught.exception, counter_error)
+            self.assertEqual(caught.exception.errno, 5)
             self.assertEqual(dict(os.environ), before)
             self.assertIs(worker.t.resources, resources)
             self.assertIs(worker.t.s.cpu_ms, cpu)

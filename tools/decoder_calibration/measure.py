@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import threading
+import traceback
 from . import worker as w
 from . import native
 from .protocol import parse_probe_timing
@@ -37,7 +38,7 @@ def sample(exe, image, output, inner, repeats=1, delay=0, extra=0, corrupt=False
                 try:
                     observed.append(capture(process))
                 except Exception as error:
-                    errors.append(repr(error))
+                    errors.append(error)
                     break
                 stopped.wait(0.002)
 
@@ -51,7 +52,8 @@ def sample(exe, image, output, inner, repeats=1, delay=0, extra=0, corrupt=False
         for thread in monitors:
             thread.join(2)
             assert not thread.is_alive(), 'Resource monitor failed to stop'
-        assert not errors, errors
+        if errors:
+            raise errors[0]
         final = capture(process)
         observed.append(final)
         assert observed
@@ -121,7 +123,9 @@ def sample(exe, image, output, inner, repeats=1, delay=0, extra=0, corrupt=False
         if output.exists():
             try:
                 (output / 'monitor-cleanup.json').write_text(json.dumps({
-                    'cleanup_errors': cleanup_errors, 'sample_errors': errors,
+                    'cleanup_errors': cleanup_errors,
+                    'sample_errors': [repr(error) for error in errors],
+                    'sample_error_tracebacks': [traceback.format_exception(error) for error in errors],
                     'samples': len(observed), 'all_monitors_terminal': not cleanup_errors}) + '\n', encoding='utf-8')
             except BaseException as error:
                 cleanup_errors.append('monitor cleanup report write failed: ' + repr(error))
