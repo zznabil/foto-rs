@@ -14,13 +14,20 @@ PWSH = shutil.which("pwsh")
 
 @unittest.skipUnless(PWSH, "PowerShell is required for Defender preparation controls")
 class DefenderPreparationControls(unittest.TestCase):
-    def run_control(self, *, update_code=0, antivirus=True, realtime=True, hosted=True):
+    def run_control(
+        self, *, update_code=0, antivirus=True, realtime=True, hosted=True, ready_after=0,
+        status_seconds=0
+    ):
         assert PWSH is not None
         # Only the unsafe OS boundaries are replaced. The actual gate script executes.
         command = r"""
 $ErrorActionPreference = 'Stop'
 $global:policyCalls = 0
 $global:updateCalls = 0
+$global:statusCalls = 0
+$global:seconds = 0
+function Get-Date { [datetime]::new(2026, 1, 1).AddSeconds($global:seconds) }
+function Start-Sleep { param([int]$Seconds) $global:seconds += $Seconds }
 function Set-MpPreference { param([bool]$DisableRealtimeMonitoring) $global:policyCalls++ }
 function Get-ChildItem {
     param($Path, [switch]$File)
@@ -36,9 +43,12 @@ function Invoke-UpdateControl {
 function Invoke-OutdatedControl { throw 'An older numeric platform was selected' }
 function Invoke-AliasControl { throw 'An unversioned platform alias was selected' }
 function Get-MpComputerStatus {
+    $global:seconds += [int]$env:FOTO_CONTROL_STATUS_SECONDS
+    $global:statusCalls++
+    $ready = $global:statusCalls -gt [int]$env:FOTO_CONTROL_READY_AFTER
     [pscustomobject]@{
-        AntivirusEnabled = $env:FOTO_CONTROL_AV -eq 'true'
-        RealTimeProtectionEnabled = $env:FOTO_CONTROL_RTP -eq 'true'
+        AntivirusEnabled = $ready -and $env:FOTO_CONTROL_AV -eq 'true'
+        RealTimeProtectionEnabled = $ready -and $env:FOTO_CONTROL_RTP -eq 'true'
         AntivirusSignatureVersion = 'control-signature'
     }
 }
@@ -46,7 +56,7 @@ $ok = $false
 $message = $null
 try { & $env:FOTO_PREPARATION_SCRIPT; $ok = $true }
 catch { $message = $_.Exception.Message }
-[ordered]@{ ok = $ok; error = $message; policy_calls = $global:policyCalls; update_calls = $global:updateCalls } | ConvertTo-Json -Compress
+[ordered]@{ ok = $ok; error = $message; policy_calls = $global:policyCalls; update_calls = $global:updateCalls; status_calls = $global:statusCalls; seconds = $global:seconds } | ConvertTo-Json -Compress
 """
         env = os.environ | {
             "GITHUB_ACTIONS": "true" if hosted else "false",
@@ -54,6 +64,8 @@ catch { $message = $_.Exception.Message }
             "FOTO_CONTROL_UPDATE_CODE": str(update_code),
             "FOTO_CONTROL_AV": str(antivirus).lower(),
             "FOTO_CONTROL_RTP": str(realtime).lower(),
+            "FOTO_CONTROL_READY_AFTER": str(ready_after),
+            "FOTO_CONTROL_STATUS_SECONDS": str(status_seconds),
             "FOTO_PREPARATION_SCRIPT": str(ROOT / "tools/prepare_defender.ps1"),
         }
         result = subprocess.run(
@@ -76,6 +88,35 @@ catch { $message = $_.Exception.Message }
         self.assertTrue(status["AntivirusEnabled"])
         self.assertTrue(status["RealTimeProtectionEnabled"])
 
+    def test_protection_can_become_active_before_or_at_the_deadline(self):
+        for ready_after in (2, 30):
+            with self.subTest(ready_after=ready_after):
+                record, output = self.run_control(ready_after=ready_after)
+                self.assertTrue(record["ok"], record)
+                self.assertEqual(record["seconds"], ready_after)
+                self.assertEqual(record["status_calls"], ready_after + 1)
+                self.assertEqual(record["policy_calls"], 1)
+                self.assertEqual(record["update_calls"], 1)
+                self.assertIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
+
+    def test_activation_after_the_deadline_is_not_accepted(self):
+        record, output = self.run_control(ready_after=31)
+        self.assertFalse(record["ok"])
+        self.assertEqual(record["seconds"], 30)
+        self.assertEqual(record["status_calls"], 31)
+        self.assertEqual(record["update_calls"], 1)
+        self.assertIn("AntivirusEnabled=False", record["error"])
+        self.assertIn("RealTimeProtectionEnabled=False", record["error"])
+        self.assertNotIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
+
+    def test_status_query_completing_after_the_deadline_cannot_pass(self):
+        record, output = self.run_control(status_seconds=31)
+        self.assertFalse(record["ok"])
+        self.assertEqual(record["status_calls"], 1)
+        self.assertIn("AntivirusEnabled=True", record["error"])
+        self.assertIn("RealTimeProtectionEnabled=True", record["error"])
+        self.assertNotIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
+
     def test_update_failure_blocks_the_success_marker(self):
         record, output = self.run_control(update_code=23)
         self.assertFalse(record["ok"])
@@ -89,7 +130,9 @@ catch { $message = $_.Exception.Message }
                     antivirus=antivirus, realtime=realtime
                 )
                 self.assertFalse(record["ok"])
-                self.assertIn("protection is unavailable", record["error"])
+                self.assertEqual(record["seconds"], 30)
+                self.assertIn(f"AntivirusEnabled={antivirus}", record["error"])
+                self.assertIn(f"RealTimeProtectionEnabled={realtime}", record["error"])
                 self.assertNotIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
 
     def test_local_invocation_refuses_before_any_policy_or_update_action(self):
