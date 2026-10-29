@@ -53,6 +53,11 @@ def rect(hwnd, client=False):
     return (r.left, r.top, r.right, r.bottom)
 
 
+def _wait_fullscreen(hwnd, expected):
+    # Caption style changes before SetWindowPos finishes the fullscreen transition.
+    s.wait(lambda:s.get_style(hwnd,-16)&0xc00000==0 and rect(hwnd)==expected,'full screen')
+
+
 def focus(hwnd):
     info = ThreadInfo(C.sizeof(ThreadInfo))
     thread = s.get_pid(hwnd, None)
@@ -300,7 +305,7 @@ class Suite:
             assert monitor_info(monitor_from_window(view.hwnd,2),C.byref(info))
             expected=tuple(getattr(info.monitor,n) for n in ['left','top','right','bottom'])
             s.key(view.hwnd,0x7a)
-            s.wait(lambda:s.get_style(view.hwnd,-16)&0xc00000==0,'full screen')
+            _wait_fullscreen(view.hwnd, expected)
             assert rect(view.hwnd)==expected,('full screen bounds',rect(view.hwnd),expected)
             s.key(view.hwnd,0x1b)
             s.wait(lambda:zoomed(view.hwnd) and s.get_style(view.hwnd,-16)&0xc00000!=0 and rect(view.hwnd)==maximised,'restored maximised state')
@@ -309,7 +314,7 @@ class Suite:
             assert rect(view.hwnd)==original,('normal placement changed',rect(view.hwnd),original)
             # A held toggle key should not alternate full screen on repeat messages.
             s.key(view.hwnd,0x7a)
-            s.wait(lambda:s.get_style(view.hwnd,-16)&0xc00000==0,'first F11')
+            _wait_fullscreen(view.hwnd, expected)
             s.post(view.hwnd,0x100,0x7a,1|(1<<30));time.sleep(.05)
             assert s.get_style(view.hwnd,-16)&0xc00000==0,'held F11 toggled full screen back off'
             s.key(view.hwnd,0x1b)
