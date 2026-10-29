@@ -33,6 +33,8 @@ get_class = api(user, "GetClassNameW", C.c_int, W.HWND, W.LPWSTR, C.c_int)
 post = api(user, "PostMessageW", W.BOOL, W.HWND, W.UINT, W.WPARAM, W.LPARAM)
 get_item = api(user, "GetDlgItem", W.HWND, W.HWND, C.c_int)
 enabled = api(user, "IsWindowEnabled", W.BOOL, W.HWND)
+visible = api(user, "IsWindowVisible", W.BOOL, W.HWND)
+owner_window = api(user, "GetWindow", W.HWND, W.HWND, W.UINT)
 get_rect = api(user, "GetClientRect", W.BOOL, W.HWND, C.POINTER(W.RECT))
 get_window_rect = api(user, "GetWindowRect", W.BOOL, W.HWND, C.POINTER(W.RECT))
 get_style = api(user, "GetWindowLongPtrW", C.c_ssize_t, W.HWND, C.c_int)
@@ -86,6 +88,19 @@ def windows(pid, window_class):
     return result
 
 
+def file_picker(pid, owner):
+    # Enumeration also finds hidden shell setup windows, before a user can cancel.
+    ready = []
+    for dialog in windows(pid, "#32770"):
+        cancel = get_item(dialog, 2)
+        if (owner_window(dialog, 4) == owner and text(dialog) == "Open a photo"
+                and visible(dialog) and enabled(dialog)
+                and cancel and visible(cancel) and enabled(cancel)):
+            ready.append(dialog)
+    assert len(ready) <= 1, "More than one ready file picker belongs to the viewer"
+    return ready[0] if ready else None
+
+
 def events(path, name):
     return [r for r in rows(path) if r.get("event") == name]
 
@@ -112,12 +127,15 @@ def drop_file(hwnd, path):
 
 
 def close(process, hwnd):
-    post(hwnd, 0x10, 0, 0)
+    if process.poll() is None:
+        post(hwnd, 0x10, 0, 0)
     try:
-        assert process.wait(timeout=4) == 0
+        code = process.wait(timeout=4)
     except subprocess.TimeoutExpired:
         process.kill()
         raise AssertionError("Viewer did not close promptly")
+    if code != 0:
+        raise AssertionError(f"Viewer exited with code {code}")
 
 
 def launch(exe, photo, log):
@@ -264,7 +282,7 @@ def main():
         pixel_corners(hwnd)
         checks.append("native file drop accepts spaces and Unicode paths")
         command(hwnd, 100)
-        dialog = wait(lambda: windows(process.pid, "#32770"), "native file picker")[0]
+        dialog = wait(lambda: file_picker(process.pid, hwnd), "native file picker")
         assert post(dialog, 0x10, 0, 0)
         wait(lambda: not windows(process.pid, "#32770"), "file picker cancellation")
         assert text(hwnd) == "café 猫 photo.jpg — Foto"
