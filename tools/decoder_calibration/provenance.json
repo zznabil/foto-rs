@@ -199,7 +199,7 @@
   "adaptations": {
     "imports": "Canonical repository tools and package-relative imports replace artifact-relative paths.",
     "worker_identity": "Expected harness hash is derived from the canonical worker file; raw argument and payload contracts are unchanged.",
-    "guard_owner": "Both wrapper and base own INNER512 BATCHES16 MIB1048576; load_guards returns the same base module.",
+    "guard_owner": "The wrapper calls base_guards directly; the legacy loader function is removed. Both modules retain INNER512 BATCHES16 MIB1048576 and share CONTROL_DEFINITIONS and require. Original module hashes remain archival; current guard AST and normalised comparison evidence are recorded in current_adoption.",
     "build_supervision": "One optional timeout keyword preserves the original 1200-second default and supplies 60 seconds for the isolated peak setup; exception and cleanup code is unchanged.",
     "peak_calibration": "Original 17 assertion AST multiset retained; fresh child avoids controller priming. Layout and snapshots are inside failure handling, with host/PID/phase/allocation metadata and primary/cleanup evidence.",
     "optimized_python": "All executable contract modules reject optimized Python."
@@ -236,5 +236,54 @@
       "cpu_ms": "A443C00B653862B35BEB6DC7D9A8CB028B3B441008C1010D0EBFDA42D6811851"
     },
     "interpretation": "The actual isolated upstream checkout helpers are byte-identical to the frozen E057 helpers, including all listed critical FFI/resource segments. The earlier export proof current_tools hashes described dirty root helpers and are superseded here."
+  },
+  "record_scope": "The modules, historical_sources and helper_ffi_closure sections preserve the original PR14 export snapshots and equality claims. They are archival, not current file hashes or host evidence. Current direct-module adoption and helper closure verification are recorded separately under current_adoption.",
+  "current_adoption": {
+    "helper_source_commit": "69ee12eebbe81f59e5154cef1b37a68dc64fc6f0",
+    "guard_change": "Replace the legacy loader and its local module alias with direct base_guards calls. No measurement predicate, workload, timing boundary or error path changes.",
+    "guard_functions": {
+      "common_row_guard": {
+        "current_ast_sha256": "ed760dd259d882231daa45fdcbab3145e02e928ece22ec72da1e58416626ae16",
+        "normalised_to_original_ast_sha256": "b95d6ce4e3d733010231a3990bc3134d0f9eb7ce06d0ce37db9cd59cf8ec37c3",
+        "matches_archival_original": true
+      },
+      "validate_control": {
+        "current_ast_sha256": "508a37aad9707112d8d95a43223c9673e0c1f240aed01357b73503f542f3702f",
+        "normalised_to_original_ast_sha256": "db1ad37ef938b85683b6d8e2fb79e1452830c2b9807ec0c6b872b4c6927d40c5",
+        "matches_archival_original": true
+      }
+    },
+    "helpers": {
+      "stress_test.py": {
+        "current_sha256": "7e71576ccf13bc84f12dd93c599832803648cb21696d49fb34c397e0c4ddb654",
+        "archival_file_bytes_equal": false,
+        "critical_segments_ast_equal_to_archive": {
+          "MemoryInfo": true,
+          "get_memory": true,
+          "get_handles": true,
+          "get_gui": true,
+          "resources": true
+        }
+      },
+      "smoke_test.py": {
+        "current_sha256": "55c121964cc50756c24e8bf6ec26c3371272321c5d76080cd0eb870ee4278b53",
+        "archival_file_bytes_equal": false,
+        "critical_segments_ast_equal_to_archive": {
+          "api": true,
+          "user": true,
+          "kernel": true,
+          "gdi": true,
+          "CALLBACK": true,
+          "get_pid": true,
+          "process_times": true,
+          "cpu_ms": true
+        }
+      }
+    },
+    "current_module_sha256": {
+      "tools/decoder_calibration/guards.py": "c4b02c0e7cdd7b5b1b17c4746b81553fe8ecad3ea00d86545daf2d6493ad85c6",
+      "tools/calibrate_decoder.py": "c8f03091468dc76d9bb5e25564854f125b8f9bedfb8dee90daef8a2e5f65de05"
+    },
+    "evidence_limit": "Source comparison only, not a native-control verdict. Fresh local and hosted native cohorts are required."
   }
 }

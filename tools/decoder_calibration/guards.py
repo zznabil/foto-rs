@@ -18,11 +18,6 @@ MIB = 1024 * 1024
 CONTROL_DEFINITIONS = base.CONTROL_DEFINITIONS
 
 
-def load_guards():
-    """Compatibility shim for the original E057 call sites."""
-    return base
-
-
 def argument_guard(row: dict, case: dict) -> None:
     require(row.get("input") == case["path"], "worker input path changed")
     require(row.get("input_sha256") == case["input_sha256"], "input hash mismatch")
@@ -74,7 +69,7 @@ def delay_guard(row: dict, control: dict) -> None:
 def common_row_guard(row: dict, case: dict, expected_pixels: str, exe_hash: str,
                      worker_hash: str, control: dict) -> None:
     argument_guard(row, case)
-    load_guards().common_row_guard(row, case, expected_pixels, exe_hash, worker_hash, control)
+    base.common_row_guard(row, case, expected_pixels, exe_hash, worker_hash, control)
     delay_guard(row, control)
 
 
@@ -83,8 +78,7 @@ def total_ns(row: dict) -> int:
 
 
 def validate_control(row: dict, control: dict, case: dict, by_name: dict) -> dict:
-    guards = load_guards()
-    expected = case["pixels_sha256"] if not control["corrupt"] else guards.mutated_digest(Path(case["reference"]))
+    expected = case["pixels_sha256"] if not control["corrupt"] else base.mutated_digest(Path(case["reference"]))
     if control["name"] == "delay1000once":
         common_row_guard(row, case, expected, by_name["exe_hash"], by_name["worker_hash"], control)
         other = row["times_ns"][:8] + row["times_ns"][9:]
@@ -93,7 +87,7 @@ def validate_control(row: dict, control: dict, case: dict, by_name: dict) -> dic
                 f"batch-8 minus median(other 15) below 750ms: {delta / 1_000_000}")
         return {"batch_total_ns": total_ns(row), "batch8_minus_median_other15_ns": delta}
 
-    checks = guards.validate_control(row, control, case, by_name)
+    checks = base.validate_control(row, control, case, by_name)
     argument_guard(row, case)
     delay_guard(row, control)
     if control["name"] == "normal":

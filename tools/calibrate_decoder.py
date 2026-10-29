@@ -138,7 +138,7 @@ def main():
             s.require(Path(module.__file__).resolve() == expected.resolve(), "unexpected support module")
         s.require(native.t is worker.t and native.s is worker.t.s and measure.w is worker
                   and measure.native is native, "measurement module identity differs")
-        s.require(guards.load_guards() is guards.base and guards.INNER == guards.base.INNER == 512
+        s.require(guards.INNER == guards.base.INNER == 512
                   and guards.BATCHES == guards.base.BATCHES == 16
                   and guards.MIB == guards.base.MIB == 1048576
                   and guards.CONTROL_DEFINITIONS is guards.base.CONTROL_DEFINITIONS
