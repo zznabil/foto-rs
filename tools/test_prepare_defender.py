@@ -15,21 +15,26 @@ PWSH = shutil.which("pwsh")
 @unittest.skipUnless(PWSH, "PowerShell is required for Defender preparation controls")
 class DefenderPreparationControls(unittest.TestCase):
     def run_control(self, *, update_code=0, antivirus=True, realtime=True, hosted=True):
+        assert PWSH is not None
         # Only the unsafe OS boundaries are replaced. The actual gate script executes.
         command = r"""
 $ErrorActionPreference = 'Stop'
-$script:policyCalls = 0
-$script:updateCalls = 0
-function Set-MpPreference { param([bool]$DisableRealtimeMonitoring) $script:policyCalls++ }
+$global:policyCalls = 0
+$global:updateCalls = 0
+function Set-MpPreference { param([bool]$DisableRealtimeMonitoring) $global:policyCalls++ }
 function Get-ChildItem {
     param($Path, [switch]$File)
     [pscustomobject]@{ FullName = 'Invoke-UpdateControl'; Directory = [pscustomobject]@{ Name = '4.18.26090.9-0' } }
+    [pscustomobject]@{ FullName = 'Invoke-OutdatedControl'; Directory = [pscustomobject]@{ Name = '4.9.99999.9-0' } }
+    [pscustomobject]@{ FullName = 'Invoke-AliasControl'; Directory = [pscustomobject]@{ Name = 'CurrentVersion' } }
 }
 function Invoke-UpdateControl {
     param([switch]$SignatureUpdate, [switch]$MMPC)
-    $script:updateCalls++
+    $global:updateCalls++
     $global:LASTEXITCODE = [int]$env:FOTO_CONTROL_UPDATE_CODE
 }
+function Invoke-OutdatedControl { throw 'An older numeric platform was selected' }
+function Invoke-AliasControl { throw 'An unversioned platform alias was selected' }
 function Get-MpComputerStatus {
     [pscustomobject]@{
         AntivirusEnabled = $env:FOTO_CONTROL_AV -eq 'true'
@@ -41,7 +46,7 @@ $ok = $false
 $message = $null
 try { & $env:FOTO_PREPARATION_SCRIPT; $ok = $true }
 catch { $message = $_.Exception.Message }
-[ordered]@{ ok = $ok; error = $message; policy_calls = $script:policyCalls; update_calls = $script:updateCalls } | ConvertTo-Json -Compress
+[ordered]@{ ok = $ok; error = $message; policy_calls = $global:policyCalls; update_calls = $global:updateCalls } | ConvertTo-Json -Compress
 """
         env = os.environ | {
             "GITHUB_ACTIONS": "true" if hosted else "false",
@@ -64,6 +69,8 @@ catch { $message = $_.Exception.Message }
     def test_successful_update_with_active_protection_is_the_positive_control(self):
         record, output = self.run_control()
         self.assertTrue(record["ok"], record)
+        self.assertEqual(record["policy_calls"], 1)
+        self.assertEqual(record["update_calls"], 1)
         self.assertIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
         status = json.loads(output.splitlines()[-3])
         self.assertTrue(status["AntivirusEnabled"])

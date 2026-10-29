@@ -8,6 +8,7 @@ if ($env:GITHUB_ACTIONS -ne 'true') {
 Set-MpPreference -DisableRealtimeMonitoring $false
 $platform = Join-Path $env:ProgramData 'Microsoft/Windows Defender/Platform'
 $scanner = Get-ChildItem (Join-Path $platform '*/MpCmdRun.exe') -File |
+    Where-Object { $_.Directory.Name -match '^\d+\.\d+\.\d+\.\d+(-\d+)?$' } |
     Sort-Object { [version](($_.Directory.Name -split '-')[0]) } -Descending |
     Select-Object -First 1
 if (-not $scanner) { throw 'Installed Defender platform command was not found' }
