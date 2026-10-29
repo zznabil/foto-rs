@@ -27,6 +27,16 @@ It requires a successful process, an explicit no-threat result, active antivirus
 and real-time protection, and unchanged file bytes. Detection, missing access,
 unexpected output or scanner failure blocks that gate.
 
+Hosted CI and publication runners first run `tools/prepare_defender.ps1`.
+It enables real-time protection, updates security intelligence through the
+installed `MpCmdRun.exe -SignatureUpdate -MMPC` command, and checks protection
+again. Microsoft documents this native, direct update path. The former
+`Update-MpSignature` route failed with RPC errors on hosted runners before
+project verification. An update failure still blocks the job; there is no
+retry, ignored error or stale-definition fallback. The preparation script
+refuses to run outside GitHub Actions. Local verification does not change
+Defender policy.
+
 The diagnostic scan uses Microsoft's documented custom-scan
 `-DisableRemediation` option. It ignores file exclusions and reports detections
 without applying scan remediation. It does not disable real-time protection or

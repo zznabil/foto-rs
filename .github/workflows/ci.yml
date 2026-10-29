@@ -71,12 +71,7 @@ jobs:
         run: python -m unittest discover -s tools -p test_picker_readiness.py -v
       - name: Enable Defender real-time protection for executable validation
         shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          Set-MpPreference -DisableRealtimeMonitoring $false
-          Update-MpSignature
-          $status = Get-MpComputerStatus
-          if (-not $status.AntivirusEnabled -or -not $status.RealTimeProtectionEnabled) { throw 'Defender protection is unavailable' }
+        run: ./tools/prepare_defender.ps1
       - run: python tools/verify.py
       - run: python tools/package_release.py
       - name: Rebuild vendored source offline in isolation
