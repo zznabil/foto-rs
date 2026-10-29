@@ -115,8 +115,13 @@ class Session:
         assert (last["event"] == "error") == error, (path.name, last)
 
     def close(self):
+        active_error = sys.exception()
         try:
             s.close(self.process, self.hwnd)
+        except Exception as error:
+            if active_error is None:
+                raise
+            self.suite._cleanup_error(self, error)
         finally:
             if self in self.suite.sessions:self.suite.sessions.remove(self)
 
@@ -130,6 +135,7 @@ class Suite:
         self.serial = 0
         self.results = []
         self.sessions = []
+        self.cleanup_errors = []
         self.metrics = {}
         self.assets = self.output / "assets"
         self.assets.mkdir()
@@ -168,10 +174,15 @@ class Suite:
             record["exception_chain"] = chain
         return record
 
+    def _cleanup_error(self, session, error):
+        record = {"session": str(getattr(session, "log", repr(session)))}
+        record.update(self._error_record(error))
+        self.cleanup_errors.append(record)
+
     def case(self, name, function):
         started = time.monotonic()
         body_error = None
-        cleanup_errors = []
+        cleanup_errors = self.cleanup_errors = []
         try:
             try:
                 function()
@@ -182,9 +193,7 @@ class Suite:
                 try:
                     session.close()
                 except Exception as error:
-                    record = {"session": str(getattr(session, "log", repr(session)))}
-                    record.update(self._error_record(error))
-                    cleanup_errors.append(record)
+                    self._cleanup_error(session, error)
         if body_error is None and not cleanup_errors:
             result = {"id": name, "verdict": "PASS"}
         else:
