@@ -127,12 +127,15 @@ def drop_file(hwnd, path):
 
 
 def close(process, hwnd):
-    post(hwnd, 0x10, 0, 0)
+    if process.poll() is None:
+        post(hwnd, 0x10, 0, 0)
     try:
-        assert process.wait(timeout=4) == 0
+        code = process.wait(timeout=4)
     except subprocess.TimeoutExpired:
         process.kill()
         raise AssertionError("Viewer did not close promptly")
+    if code != 0:
+        raise AssertionError(f"Viewer exited with code {code}")
 
 
 def launch(exe, photo, log):

@@ -115,8 +115,15 @@ class Session:
         assert (last["event"] == "error") == error, (path.name, last)
 
     def close(self):
-        if self.process.poll() is None:s.close(self.process, self.hwnd)
-        if self in self.suite.sessions:self.suite.sessions.remove(self)
+        active_error = sys.exception()
+        try:
+            s.close(self.process, self.hwnd)
+        except Exception as error:
+            if active_error is None:
+                raise
+            self.suite._cleanup_error(self, error)
+        finally:
+            if self in self.suite.sessions:self.suite.sessions.remove(self)
 
 
 class Suite:
@@ -128,6 +135,7 @@ class Suite:
         self.serial = 0
         self.results = []
         self.sessions = []
+        self.cleanup_errors = []
         self.metrics = {}
         self.assets = self.output / "assets"
         self.assets.mkdir()
@@ -137,16 +145,47 @@ class Suite:
         self.original_hashes = {p: hashlib.sha256(p.read_bytes()).hexdigest()
                                for p in (ROOT/'tests/fixtures').iterdir() if p.is_file()}
 
+    def _cleanup_error(self, session, error):
+        self.cleanup_errors.append({
+            "session": str(getattr(session, "log", repr(session))),
+            "type": type(error).__name__,
+            "message": str(error),
+            "traceback": traceback.format_exc(),
+        })
+
     def case(self, name, function):
         started = time.monotonic()
+        body_error = None
+        cleanup_errors = self.cleanup_errors = []
         try:
-            function()
-            result = {"id": name, "verdict": "PASS"}
-        except Exception as error:
-            result = {"id": name, "verdict": "FAIL", "error": f"{type(error).__name__}: {error}",
-                      "traceback": traceback.format_exc()}
+            try:
+                function()
+            except Exception as error:
+                body_error = {"type": type(error).__name__, "message": str(error),
+                              "traceback": traceback.format_exc()}
         finally:
-            for session in list(self.sessions):session.close()
+            for session in list(self.sessions):
+                try:
+                    session.close()
+                except Exception as error:
+                    self._cleanup_error(session, error)
+        if body_error is None and not cleanup_errors:
+            result = {"id": name, "verdict": "PASS"}
+        else:
+            failures = []
+            if body_error is not None:
+                failures.append(f"{body_error['type']}: {body_error['message']}")
+            failures.extend(
+                f"cleanup: {error['type']}: {error['message']}" for error in cleanup_errors
+            )
+            result = {
+                "id": name,
+                "verdict": "FAIL",
+                "error": "; ".join(failures),
+                "traceback": (body_error or cleanup_errors[0])["traceback"],
+                "body_error": body_error,
+                "cleanup_errors": cleanup_errors,
+            }
         result["seconds"] = round(time.monotonic()-started, 3)
         self.results.append(result)
         self.save()
@@ -227,8 +266,11 @@ class Suite:
         view=Session(self,'window',self.assets/'photo1.png')
         try:
             original=rect(view.hwnd)
-            show(view.hwnd,3)
+            original_client=rect(view.hwnd,True)
+            # Queue native system commands after keyboard transitions on the UI thread.
+            assert s.post(view.hwnd,0x112,0xf030,0)
             s.wait(lambda:zoomed(view.hwnd),'maximised')
+            maximised=rect(view.hwnd)
             info=MonitorInfo(C.sizeof(MonitorInfo))
             assert monitor_info(monitor_from_window(view.hwnd,2),C.byref(info))
             expected=tuple(getattr(info.monitor,n) for n in ['left','top','right','bottom'])
@@ -236,8 +278,9 @@ class Suite:
             s.wait(lambda:s.get_style(view.hwnd,-16)&0xc00000==0,'full screen')
             assert rect(view.hwnd)==expected,('full screen bounds',rect(view.hwnd),expected)
             s.key(view.hwnd,0x1b)
-            s.wait(lambda:zoomed(view.hwnd),'restored maximised state')
-            show(view.hwnd,9);time.sleep(.1)
+            s.wait(lambda:zoomed(view.hwnd) and s.get_style(view.hwnd,-16)&0xc00000!=0 and rect(view.hwnd)==maximised,'restored maximised state')
+            assert s.post(view.hwnd,0x112,0xf120,0)
+            s.wait(lambda:not zoomed(view.hwnd) and not iconic(view.hwnd) and rect(view.hwnd)==original,'restored normal placement')
             assert rect(view.hwnd)==original,('normal placement changed',rect(view.hwnd),original)
             # A held toggle key should not alternate full screen on repeat messages.
             s.key(view.hwnd,0x7a)
@@ -245,12 +288,16 @@ class Suite:
             s.post(view.hwnd,0x100,0x7a,1|(1<<30));time.sleep(.05)
             assert s.get_style(view.hwnd,-16)&0xc00000==0,'held F11 toggled full screen back off'
             s.key(view.hwnd,0x1b)
-            s.wait(lambda:s.get_style(view.hwnd,-16)&0xc00000!=0,'full screen exit')
-            show(view.hwnd,6);s.wait(lambda:iconic(view.hwnd),'minimised')
+            s.wait(lambda:s.get_style(view.hwnd,-16)&0xc00000!=0 and not zoomed(view.hwnd) and rect(view.hwnd)==original,'full screen exit')
+            assert s.post(view.hwnd,0x112,0xf020,0)
+            s.wait(lambda:iconic(view.hwnd),'minimised')
             s.drop_file(view.hwnd,self.assets/'photo2.png')
             s.wait(lambda:s.text(view.hwnd)=='photo2.png — Foto','decode while minimised')
-            show(view.hwnd,9);time.sleep(.1);center_color(view.hwnd,self.green)
+            assert s.post(view.hwnd,0x112,0xf120,0)
+            s.wait(lambda:not iconic(view.hwnd) and rect(view.hwnd,True)==original_client,'restored hidden decode client')
+            center_color(view.hwnd,self.green)
         finally:view.close()
+
 
     def j05(self):
         view=Session(self,'rapid',self.assets/'photo1.png')
