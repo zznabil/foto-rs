@@ -12,6 +12,7 @@ import io
 import json
 from pathlib import Path
 import subprocess
+import sys
 from types import SimpleNamespace
 import time
 import traceback
@@ -79,6 +80,7 @@ class JourneyReportingTests(unittest.TestCase):
         stress_namespace = {
             "__name__": "portable_stress_helpers",
             "s": service,
+            "sys": sys,
             "time": time,
             "traceback": traceback,
             "json": json,
@@ -167,6 +169,23 @@ class JourneyReportingTests(unittest.TestCase):
         self.assertEqual(len(result["cleanup_errors"]), 1)
         self.assertIn("RuntimeError: body failure", result["error"])
         self.assertIn("cleanup: AssertionError:", result["error"])
+        self.assertEqual(self.suite.sessions, [])
+
+    def test_inline_cleanup_cannot_replace_the_original_journey_failure(self):
+        session, _ = self.add_session(exit_code=23)
+
+        def body():
+            try:
+                raise ValueError("original image assertion")
+            finally:
+                session.close()
+
+        result = self.run_case("inline-cleanup", body)
+        self.assertEqual(result["verdict"], "FAIL")
+        self.assertEqual(result["body_error"]["type"], "ValueError")
+        self.assertEqual(result["body_error"]["message"], "original image assertion")
+        self.assertEqual(len(result["cleanup_errors"]), 1)
+        self.assertIn("code 23", result["cleanup_errors"][0]["message"])
         self.assertEqual(self.suite.sessions, [])
 
     def test_all_cleanup_attempts_run_after_one_failure(self):
