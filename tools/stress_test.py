@@ -169,7 +169,7 @@ class Suite:
             view.drop(selected)
             center_color(view.hwnd,self.red)
             s.command(view.hwnd,100)
-            dialog = s.wait(lambda:s.windows(view.process.pid,'#32770'),'picker')[0]
+            dialog = s.wait(lambda:s.file_picker(view.process.pid,view.hwnd),'picker')
             s.post(dialog,0x10,0,0)
             s.wait(lambda:not s.windows(view.process.pid,'#32770'),'picker closed')
             for _ in range(8): view.drop(selected)
@@ -519,9 +519,7 @@ class Suite:
         view=Session(self,'picker-accept')
         try:
             s.command(view.hwnd,100)
-            dialog=s.wait(lambda:s.windows(view.process.pid,'#32770'),'picker opens')[0]
-            # shortcut: shell picker setup needs 200ms here, use UIA readiness if this flakes.
-            time.sleep(.2)
+            dialog=s.wait(lambda:s.file_picker(view.process.pid,view.hwnd),'picker opens')
             enum=s.api(s.user,'EnumChildWindows',W.BOOL,W.HWND,s.CALLBACK,W.LPARAM)
             get_id=s.api(s.user,'GetDlgCtrlID',C.c_int,W.HWND)
             def filename_editor():
