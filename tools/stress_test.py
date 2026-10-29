@@ -145,13 +145,39 @@ class Suite:
         self.original_hashes = {p: hashlib.sha256(p.read_bytes()).hexdigest()
                                for p in (ROOT/'tests/fixtures').iterdir() if p.is_file()}
 
+    @staticmethod
+    def _error_record(error):
+        record = {"type": type(error).__name__, "message": str(error),
+                  "traceback": traceback.format_exc()}
+        chain = []
+        seen = {id(error)}
+        current = error
+        while True:
+            cause = current.__cause__
+            if cause is not None:
+                relation, linked = "cause", cause
+            elif current.__suppress_context__ or current.__context__ is None:
+                break
+            else:
+                relation, linked = "context", current.__context__
+            if id(linked) in seen:
+                break
+            seen.add(id(linked))
+            try:
+                linked_message = str(linked)
+            except BaseException:
+                linked_message = "<exception str() failed>"
+            chain.append({"relation": relation, "type": type(linked).__name__,
+                          "message": linked_message})
+            current = linked
+        if chain:
+            record["exception_chain"] = chain
+        return record
+
     def _cleanup_error(self, session, error):
-        self.cleanup_errors.append({
-            "session": str(getattr(session, "log", repr(session))),
-            "type": type(error).__name__,
-            "message": str(error),
-            "traceback": traceback.format_exc(),
-        })
+        record = {"session": str(getattr(session, "log", repr(session)))}
+        record.update(self._error_record(error))
+        self.cleanup_errors.append(record)
 
     def case(self, name, function):
         started = time.monotonic()
@@ -161,8 +187,7 @@ class Suite:
             try:
                 function()
             except Exception as error:
-                body_error = {"type": type(error).__name__, "message": str(error),
-                              "traceback": traceback.format_exc()}
+                body_error = self._error_record(error)
         finally:
             for session in list(self.sessions):
                 try:
@@ -208,7 +233,7 @@ class Suite:
             view.drop(selected)
             center_color(view.hwnd,self.red)
             s.command(view.hwnd,100)
-            dialog = s.wait(lambda:s.windows(view.process.pid,'#32770'),'picker')[0]
+            dialog = s.wait(lambda:s.file_picker(view.process.pid,view.hwnd),'picker')
             s.post(dialog,0x10,0,0)
             s.wait(lambda:not s.windows(view.process.pid,'#32770'),'picker closed')
             for _ in range(8): view.drop(selected)
@@ -566,9 +591,7 @@ class Suite:
         view=Session(self,'picker-accept')
         try:
             s.command(view.hwnd,100)
-            dialog=s.wait(lambda:s.windows(view.process.pid,'#32770'),'picker opens')[0]
-            # shortcut: shell picker setup needs 200ms here, use UIA readiness if this flakes.
-            time.sleep(.2)
+            dialog=s.wait(lambda:s.file_picker(view.process.pid,view.hwnd),'picker opens')
             enum=s.api(s.user,'EnumChildWindows',W.BOOL,W.HWND,s.CALLBACK,W.LPARAM)
             get_id=s.api(s.user,'GetDlgCtrlID',C.c_int,W.HWND)
             def filename_editor():
