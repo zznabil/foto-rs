@@ -483,3 +483,225 @@ mod tests {
         std::fs::remove_dir(folder).unwrap();
     }
 }
+
+#[cfg(test)]
+mod cache_state_model_assurance {
+    use super::{Cache, Image};
+    use std::{
+        collections::HashMap,
+        path::{Path, PathBuf},
+        sync::Arc,
+    };
+
+    fn image(bytes: usize, marker: u8) -> Arc<Image> {
+        assert_eq!(bytes % 4, 0);
+        let width = (bytes / 4) as u32;
+        Arc::new(Image {
+            pixels: vec![marker; bytes],
+            width,
+            height: 1,
+            original: (width, 1),
+        })
+    }
+
+    struct Model {
+        entries: HashMap<String, (Arc<Image>, u64)>,
+        limit: usize,
+        clock: u64,
+    }
+
+    impl Model {
+        fn new(limit: usize) -> Self {
+            Self {
+                entries: HashMap::new(),
+                limit,
+                clock: 0,
+            }
+        }
+        fn bytes(&self) -> usize {
+            self.entries
+                .values()
+                .map(|(image, _)| image.pixels.len())
+                .sum()
+        }
+        fn get(&mut self, path: &str) -> Option<Arc<Image>> {
+            if !self.entries.contains_key(path) {
+                return None;
+            }
+            self.clock += 1;
+            let (image, stamp) = self.entries.get_mut(path).unwrap();
+            *stamp = self.clock;
+            Some(image.clone())
+        }
+        fn insert(&mut self, path: &str, image: Arc<Image>) {
+            self.clock += 1;
+            self.entries.remove(path);
+            if image.pixels.len() > self.limit {
+                return;
+            }
+            while self.bytes() + image.pixels.len() > self.limit || self.entries.len() >= 5 {
+                let victim = self
+                    .entries
+                    .iter()
+                    .min_by_key(|(_, (_, stamp))| *stamp)
+                    .map(|(path, _)| path.clone())
+                    .expect("model eviction victim");
+                self.entries.remove(&victim);
+            }
+            self.entries.insert(path.to_owned(), (image, self.clock));
+        }
+        fn select(
+            &mut self,
+            selected: &str,
+            previous: Option<(String, Arc<Image>)>,
+        ) -> Option<Arc<Image>> {
+            let result = self.get(selected);
+            if let Some((path, image)) = previous {
+                self.insert(&path, image);
+            }
+            result
+        }
+        fn clear(&mut self) {
+            self.entries.clear();
+        }
+    }
+
+    fn check(actual: &Cache, model: &Model, names: &[String]) {
+        assert_eq!(
+            actual.bytes,
+            actual
+                .entries
+                .iter()
+                .map(|(_, image)| image.pixels.len())
+                .sum::<usize>(),
+            "CACHE_BYTE_ACCOUNTING"
+        );
+        assert_eq!(actual.bytes, model.bytes(), "CACHE_MODEL_BYTES");
+        assert!(actual.bytes <= 64, "CACHE_BYTE_LIMIT");
+        assert!(actual.entries.len() <= 5, "CACHE_ITEM_LIMIT");
+        let actual_order: Vec<_> = actual
+            .entries
+            .iter()
+            .map(|(p, _)| p.to_string_lossy().into_owned())
+            .collect();
+        let mut stamped: Vec<_> = model
+            .entries
+            .iter()
+            .map(|(p, (_, stamp))| (*stamp, p.clone()))
+            .collect();
+        stamped.sort_unstable_by_key(|(stamp, _)| *stamp);
+        let model_order: Vec<_> = stamped.into_iter().map(|(_, path)| path).collect();
+        assert_eq!(actual_order, model_order, "CACHE_LRU_ORDER");
+        for name in names {
+            let found = actual
+                .entries
+                .iter()
+                .find(|(p, _)| p.as_path() == Path::new(name))
+                .map(|(_, image)| image);
+            let expected = model.entries.get(name).map(|(image, _)| image);
+            assert_eq!(found.is_some(), expected.is_some(), "CACHE_MODEL_PRESENCE");
+            if let (Some(found), Some(expected)) = (found, expected) {
+                assert!(Arc::ptr_eq(found, expected), "CACHE_IMAGE_IDENTITY");
+            }
+        }
+    }
+
+    fn insert(
+        actual: &mut Cache,
+        model: &mut Model,
+        names: &[String],
+        index: usize,
+        bytes: usize,
+        marker: u8,
+    ) {
+        let value = image(bytes, marker);
+        actual.insert(PathBuf::from(&names[index]), value.clone());
+        model.insert(&names[index], value);
+        check(actual, model, names);
+    }
+
+    fn get(actual: &mut Cache, model: &mut Model, names: &[String], index: usize) {
+        let found = actual.get(Path::new(&names[index]));
+        let expected = model.get(&names[index]);
+        assert_eq!(found.is_some(), expected.is_some());
+        if let (Some(found), Some(expected)) = (found, expected) {
+            assert!(Arc::ptr_eq(&found, &expected));
+        }
+        check(actual, model, names);
+    }
+
+    #[test]
+    fn cache_matches_independent_timestamp_model() {
+        let names: Vec<_> = (0..9).map(|i| format!("p{i}")).collect();
+        let mut actual = Cache::new(64);
+        let mut model = Model::new(64);
+        for i in 0..5 {
+            insert(&mut actual, &mut model, &names, i, 4, i as u8);
+        }
+        let value = image(4, 99);
+        let found = actual.select(
+            Path::new(&names[0]),
+            Some((PathBuf::from(&names[5]), value.clone())),
+        );
+        let expected = model.select(&names[0], Some((names[5].clone(), value)));
+        assert!(
+            found
+                .as_ref()
+                .zip(expected.as_ref())
+                .is_some_and(|(a, b)| Arc::ptr_eq(a, b)),
+            "CACHE_SELECT_BEFORE_INSERT"
+        );
+        check(&actual, &model, &names);
+        insert(&mut actual, &mut model, &names, 0, 8, 100);
+        insert(&mut actual, &mut model, &names, 2, 68, 101);
+        actual.clear();
+        model.clear();
+        check(&actual, &model, &names);
+        actual.clear();
+        model.clear();
+        check(&actual, &model, &names);
+        for i in 0..4 {
+            insert(&mut actual, &mut model, &names, i, 16, 110 + i as u8);
+        }
+        get(&mut actual, &mut model, &names, 0);
+        insert(&mut actual, &mut model, &names, 4, 16, 120);
+        for step in 0..9_984u64 {
+            let mut state = step.wrapping_add(0x9e3779b97f4a7c15);
+            state ^= state << 7;
+            state ^= state >> 9;
+            state ^= state << 8;
+            let index = (state as usize) % names.len();
+            match state % 4 {
+                0 => insert(
+                    &mut actual,
+                    &mut model,
+                    &names,
+                    index,
+                    [4, 8, 16, 68][((state >> 8) % 4) as usize],
+                    step as u8,
+                ),
+                1 => get(&mut actual, &mut model, &names, index),
+                2 => {
+                    let previous = (index + 1 + ((state >> 16) as usize % 8)) % names.len();
+                    let value = image([4, 8, 16][((state >> 24) % 3) as usize], step as u8);
+                    let found = actual.select(
+                        Path::new(&names[index]),
+                        Some((PathBuf::from(&names[previous]), value.clone())),
+                    );
+                    let expected =
+                        model.select(&names[index], Some((names[previous].clone(), value)));
+                    assert_eq!(found.is_some(), expected.is_some());
+                    if let (Some(found), Some(expected)) = (found, expected) {
+                        assert!(Arc::ptr_eq(&found, &expected));
+                    }
+                    check(&actual, &model, &names);
+                }
+                _ => {
+                    actual.clear();
+                    model.clear();
+                    check(&actual, &model, &names);
+                }
+            }
+        }
+    }
+}
