@@ -15,7 +15,8 @@ PWSH = shutil.which("pwsh")
 @unittest.skipUnless(PWSH, "PowerShell is required for Defender preparation controls")
 class DefenderPreparationControls(unittest.TestCase):
     def run_control(
-        self, *, update_code=0, antivirus=True, realtime=True, hosted=True, ready_after=0
+        self, *, update_code=0, antivirus=True, realtime=True, hosted=True, ready_after=0,
+        status_seconds=0
     ):
         assert PWSH is not None
         # Only the unsafe OS boundaries are replaced. The actual gate script executes.
@@ -42,6 +43,7 @@ function Invoke-UpdateControl {
 function Invoke-OutdatedControl { throw 'An older numeric platform was selected' }
 function Invoke-AliasControl { throw 'An unversioned platform alias was selected' }
 function Get-MpComputerStatus {
+    $global:seconds += [int]$env:FOTO_CONTROL_STATUS_SECONDS
     $global:statusCalls++
     $ready = $global:statusCalls -gt [int]$env:FOTO_CONTROL_READY_AFTER
     [pscustomobject]@{
@@ -63,6 +65,7 @@ catch { $message = $_.Exception.Message }
             "FOTO_CONTROL_AV": str(antivirus).lower(),
             "FOTO_CONTROL_RTP": str(realtime).lower(),
             "FOTO_CONTROL_READY_AFTER": str(ready_after),
+            "FOTO_CONTROL_STATUS_SECONDS": str(status_seconds),
             "FOTO_PREPARATION_SCRIPT": str(ROOT / "tools/prepare_defender.ps1"),
         }
         result = subprocess.run(
@@ -106,6 +109,14 @@ catch { $message = $_.Exception.Message }
         self.assertIn("RealTimeProtectionEnabled=False", record["error"])
         self.assertNotIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
 
+    def test_status_query_completing_after_the_deadline_cannot_pass(self):
+        record, output = self.run_control(status_seconds=31)
+        self.assertFalse(record["ok"])
+        self.assertEqual(record["status_calls"], 1)
+        self.assertIn("AntivirusEnabled=True", record["error"])
+        self.assertIn("RealTimeProtectionEnabled=True", record["error"])
+        self.assertNotIn("FOTO_DEFENDER_PREPARATION_PASS", output.splitlines())
+
     def test_update_failure_blocks_the_success_marker(self):
         record, output = self.run_control(update_code=23)
         self.assertFalse(record["ok"])
@@ -119,7 +130,6 @@ catch { $message = $_.Exception.Message }
                     antivirus=antivirus, realtime=realtime
                 )
                 self.assertFalse(record["ok"])
-                self.assertIn("protection is unavailable", record["error"])
                 self.assertEqual(record["seconds"], 30)
                 self.assertIn(f"AntivirusEnabled={antivirus}", record["error"])
                 self.assertIn(f"RealTimeProtectionEnabled={realtime}", record["error"])

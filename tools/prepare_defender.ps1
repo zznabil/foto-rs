@@ -24,9 +24,10 @@ if ($updateExitCode -ne 0) {
 $deadline = (Get-Date).AddSeconds(30)
 while ($true) {
     $status = Get-MpComputerStatus
-    if ($status.AntivirusEnabled -and $status.RealTimeProtectionEnabled) { break }
-    if ((Get-Date) -ge $deadline) {
-        throw "Defender protection is unavailable after 30 seconds: AntivirusEnabled=$($status.AntivirusEnabled); RealTimeProtectionEnabled=$($status.RealTimeProtectionEnabled)"
+    $observedAt = Get-Date
+    if ($observedAt -le $deadline -and $status.AntivirusEnabled -and $status.RealTimeProtectionEnabled) { break }
+    if ($observedAt -ge $deadline) {
+        throw "Defender protection was not confirmed within 30 seconds: AntivirusEnabled=$($status.AntivirusEnabled); RealTimeProtectionEnabled=$($status.RealTimeProtectionEnabled)"
     }
     Start-Sleep -Seconds 1
 }
