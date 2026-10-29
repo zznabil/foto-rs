@@ -1,8 +1,10 @@
 # E051: reject path-metadata eligibility and 4 KiB owned streams
 
+Archive status (2026-10-29 takeover): the results and checks below are the original study's report, not newly reproduced evidence. Its fingerprinted raw data and complete streak ledger have not been recovered in this takeover. The reported 29-plateau streak is not adopted as the current verified count. Current verification starts at zero unless that historical evidence is recovered and validated.
+
 Checking path metadata before opening the file and limiting owned memory streams to 4 KiB did not repair the prior design's costs. This candidate failed latency, CPU and memory guards. Keep the original filename decoder. This PR proposes only an experiment report; no product change was retained.
 
-E051 is a distinct, rejected design and advances the local streak once from 28 to 29 valid consecutive plateaus. The study now has 39 performance-evaluated candidates, ten unresolved candidates and zero retained improvements in this streak. Demonstrated harm counts as a rejection; a counted plateau does not mean the candidate is safe to ship. The target of exactly 100 remains incomplete.
+The original study recorded E051 as a distinct rejected design, advancing its local streak once from 28 to 29. It reported 39 performance-evaluated candidates, ten unresolved candidates and zero retained improvements in that streak. Demonstrated harm counted as a rejection; a counted plateau did not mean the candidate was safe to ship. The target of exactly 100 remains incomplete.
 
 ## Hypothesis and scope
 
@@ -63,7 +65,7 @@ Eleven formal fields demonstrate regression beyond their matching guards. The JP
 
 The exact-4-KiB peak/private increases of 13.2387% (interval +12.4149% to +13.8949%) exceed the fixed 10% memory guards. Two of 35 median resource checks also fail at that boundary: private memory and peak commit. Both fallback latency and CPU intervals exceed their guards. No qualifying gain was found or retained.
 
-Decision: `REJECTED_DEMONSTRATED_COMPONENT_PERFORMANCE_OR_RESOURCE_REGRESSION`. Protected source, Cargo/configuration, default executable and distribution executable were verified byte-identical to their pre-experiment values; only owned temporary examples were removed. The streak advances once; there is no reset or release change.
+Historical decision: `REJECTED_DEMONSTRATED_COMPONENT_PERFORMANCE_OR_RESOURCE_REGRESSION`. The study reported protected source, Cargo/configuration, default executable and distribution executable byte-identical to their pre-experiment values, with only owned temporary examples removed. It recorded one streak increment and no reset or release change. This takeover has not verified that increment.
 
 This screen does not isolate syscall or allocator costs. Attributing the slowdown specifically to the implementation of path metadata, or memory specifically to heap allocation classes, would require a separate discriminating probe.
 
