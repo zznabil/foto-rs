@@ -7,6 +7,7 @@
 - Add paired multi-workload measurements with raw observations, p95/p99 and resource counters. Reject and revert three subsequent no-gain candidates. Ordinary browsing is not claimed faster; see RECURSIVE.md for regression guards and limitations.
 - Wait for an actionable native file picker before cancellation or filename entry. Keep the original cancellation deadline and final image checks; replace the fixed shell-initialisation sleep with observed readiness.
 - Preserve the original journey failure when inline viewer cleanup also fails. Report cleanup failures separately and retain their exit codes.
+- Retain explicit causes and unsuppressed exception context in structured journey failure reports, including errors raised during cleanup.
 - Use Defender's native direct security-intelligence update command on hosted verification runners. Update failures and disabled protection still block validation.
 
 ## 1.0.5
