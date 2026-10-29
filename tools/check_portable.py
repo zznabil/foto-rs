@@ -31,7 +31,7 @@ def check(path):
         name = offset(struct.unpack_from("<I", data, imports+12)[0])
         libraries.append(data[name:data.index(0, name)].decode("ascii"))
         imports += 20
-    system = {"advapi32.dll", "bcrypt.dll", "comdlg32.dll", "d2d1.dll", "dwrite.dll", "dwmapi.dll",
+    system = {"advapi32.dll", "bcrypt.dll", "combase.dll", "comdlg32.dll", "d2d1.dll", "dwrite.dll", "dwmapi.dll",
               "gdi32.dll", "kernel32.dll", "ntdll.dll", "ole32.dll", "oleaut32.dll", "propsys.dll",
               "rpcrt4.dll", "shell32.dll", "shlwapi.dll", "user32.dll", "userenv.dll", "ws2_32.dll"}
     unexpected = [name for name in libraries if name.lower() not in system
