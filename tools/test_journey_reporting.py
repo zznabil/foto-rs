@@ -293,7 +293,6 @@ class JourneyReportingTests(unittest.TestCase):
             {"relation": "cause", "type": "BrokenInner", "message": "<exception str() failed>"},
         ], "LINKED_CLEANUP_MESSAGE_FAILURE_MUST_PRESERVE_REPORT")
         self.assertEqual(len(self.saved_reports), 1)
-
     def test_inline_cleanup_cannot_replace_the_original_journey_failure(self):
         session, _ = self.add_session(exit_code=23)
 
