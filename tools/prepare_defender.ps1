@@ -20,9 +20,15 @@ $updateExitCode = $LASTEXITCODE
 if ($updateExitCode -ne 0) {
     throw "Defender security intelligence update failed with exit code $updateExitCode"
 }
-$status = Get-MpComputerStatus
-if (-not $status.AntivirusEnabled -or -not $status.RealTimeProtectionEnabled) {
-    throw 'Defender protection is unavailable'
+# Observe activation after the single enable/update; never retry either operation.
+$deadline = (Get-Date).AddSeconds(30)
+while ($true) {
+    $status = Get-MpComputerStatus
+    if ($status.AntivirusEnabled -and $status.RealTimeProtectionEnabled) { break }
+    if ((Get-Date) -ge $deadline) {
+        throw "Defender protection is unavailable after 30 seconds: AntivirusEnabled=$($status.AntivirusEnabled); RealTimeProtectionEnabled=$($status.RealTimeProtectionEnabled)"
+    }
+    Start-Sleep -Seconds 1
 }
 $status | Select-Object AMProductVersion, AMEngineVersion, AntivirusSignatureVersion,
     AntivirusSignatureLastUpdated, AntivirusEnabled, RealTimeProtectionEnabled |
